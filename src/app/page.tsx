@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 
@@ -77,8 +78,23 @@ function Hero() {
               aria-label={card.title}
               className={`hero-card ${card.size}`}
               key={card.title}
-              style={{ backgroundImage: `url(${card.image})` }}
-            />
+            >
+              <Image
+                src={card.image}
+                alt=""
+                fill
+                priority={card.size === "main"}
+                loading={card.size === "main" ? "eager" : "lazy"}
+                sizes={
+                  card.size === "main"
+                    ? "456px"
+                    : card.size === "mid" || card.size === "mid dark"
+                      ? "262px"
+                      : "190px"
+                }
+                className="object-cover"
+              />
+            </article>
           ))}
         </div>
       </div>
