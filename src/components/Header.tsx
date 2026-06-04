@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 
 const navItems = ["홈", "공간 찾기", "호스트 되기", "모임 탐색"];
@@ -61,7 +63,10 @@ export function Header() {
 
       <div className="border-t border-[#E5EAED]">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-center px-7">
-          <form className="flex h-8 w-[760px] items-center rounded-full border border-[#C9DDE0] bg-white pl-8 pr-1.5">
+          <form
+            className="flex h-8 w-[760px] items-center rounded-full border border-[#C9DDE0] bg-white pl-8 pr-1.5"
+            onSubmit={(event) => event.preventDefault()}
+          >
             <span className="mr-3 rounded-full bg-[#D8FAFC] px-3 py-1 text-[10px] font-semibold text-[#06A9B8]">
               HOT PICK
             </span>
