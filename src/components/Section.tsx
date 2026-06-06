@@ -7,7 +7,7 @@ export function Section({
 }: {
   actionLabel?: string;
   children: React.ReactNode;
-  id?: string;
+  id: string;
   subtitle: string;
   title: string;
 }) {
