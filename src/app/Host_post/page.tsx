@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { Section } from "@/components/Section";
 
 const heroImages = [
   {
@@ -76,7 +77,7 @@ function HostHero() {
             >
               <Image
                 src={card.image}
-                alt=""
+                alt={card.title}
                 fill
                 priority={card.size === "main"}
                 loading={card.size === "main" ? "eager" : "lazy"}
@@ -101,13 +102,6 @@ function HostHero() {
         <h1 className="text-[38px] font-semibold leading-[1.18] tracking-normal">
           당신의 공간을 취향이 머무는 순간으로 등록하세요
         </h1>
-      </div>
-
-      <div className="absolute bottom-[58px] left-1/2 flex -translate-x-1/2 items-center gap-[10px]">
-        <span className="h-1.5 w-11 rounded-full bg-[#10B7C5]" />
-        <span className="h-1.5 w-7 rounded-full bg-[#D3DADD]" />
-        <span className="h-1.5 w-7 rounded-full bg-[#D3DADD]" />
-        <span className="h-1.5 w-7 rounded-full bg-[#D3DADD]" />
       </div>
     </section>
   );
@@ -160,36 +154,6 @@ function PreviewCard({ meta, title }: { meta: string; title: string }) {
   );
 }
 
-function Section({
-  children,
-  subtitle,
-  title,
-}: {
-  children: React.ReactNode;
-  subtitle: string;
-  title: string;
-}) {
-  return (
-    <section className="scroll-mt-8 border-t border-[#C9D2D7] pt-4">
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <h2 className="text-[21px] font-semibold tracking-normal text-[#202A31]">
-            {title}
-          </h2>
-          <p className="mt-2 text-[13px] text-[#6A767E]">{subtitle}</p>
-        </div>
-        <button
-          className="mt-1 text-[12px] font-semibold text-[#00AEBB] transition hover:text-[#087F89]"
-          type="button"
-        >
-          도움말 보기
-        </button>
-      </div>
-      {children}
-    </section>
-  );
-}
-
 export default function HostPost() {
   return (
     <div className="min-h-screen bg-white text-[#172129]">
@@ -199,10 +163,12 @@ export default function HostPost() {
 
         <div className="mx-auto flex max-w-[1440px] flex-col gap-9 px-12 pb-[140px]">
           <Section
+            actionLabel="도움말 보기"
+            id="host-flow"
             title="호스트 등록 흐름"
             subtitle="공간을 등록하고 검수 요청까지 이어지는 핵심 단계를 확인하세요."
           >
-            <div className="grid grid-cols-4 gap-6" id="space-search">
+            <div className="grid grid-cols-4 gap-6">
               {postSteps.map(([title, desc, index]) => (
                 <StepCard
                   desc={desc}
@@ -215,10 +181,12 @@ export default function HostPost() {
           </Section>
 
           <Section
+            actionLabel="도움말 보기"
+            id="host-preview"
             title="등록 정보 미리보기"
             subtitle="게스트에게 보여질 주요 정보를 같은 화면 비율로 정리했어요."
           >
-            <div className="grid grid-cols-3 gap-6" id="calendar">
+            <div className="grid grid-cols-3 gap-6">
               {hostFields.map(([label, value]) => (
                 <FieldCard key={label} label={label} value={value} />
               ))}
@@ -226,10 +194,12 @@ export default function HostPost() {
           </Section>
 
           <Section
+            actionLabel="도움말 보기"
+            id="space-intro"
             title="공간 소개 구성"
             subtitle="사진, 안내 문구, 예약 조건까지 한 번에 점검할 수 있어요."
           >
-            <div className="grid grid-cols-6 gap-6" id="ai-match">
+            <div className="grid grid-cols-6 gap-6">
               {previewCards.map(([title, meta]) => (
                 <PreviewCard key={title} meta={meta} title={title} />
               ))}
