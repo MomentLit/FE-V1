@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export function Section({
   actionLabel = "전체 보기",
   children,
@@ -6,7 +8,7 @@ export function Section({
   title,
 }: {
   actionLabel?: string;
-  children: React.ReactNode;
+  children: ReactNode;
   id: string;
   subtitle: string;
   title: string;
