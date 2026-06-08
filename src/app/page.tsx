@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { Section } from "@/components/Section";
 
 const heroCards = [
   {
@@ -70,7 +71,10 @@ const analysisCards = [
 
 function Hero() {
   return (
-    <section className="relative h-[572px] overflow-hidden bg-white">
+    <section
+      className="relative h-[572px] overflow-hidden bg-white"
+      id="top"
+    >
       <div className="absolute inset-x-0 top-5 h-[476px]">
         <div className="flex h-full w-full items-center justify-center gap-5">
           {heroCards.map((card) => (
@@ -136,36 +140,6 @@ function Card({
   );
 }
 
-function Section({
-  children,
-  subtitle,
-  title,
-}: {
-  children: React.ReactNode;
-  subtitle: string;
-  title: string;
-}) {
-  return (
-    <section className="border-t border-[#C9D2D7] pt-4">
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <h2 className="text-[21px] font-semibold tracking-normal text-[#202A31]">
-            {title}
-          </h2>
-          <p className="mt-2 text-[13px] text-[#6A767E]">{subtitle}</p>
-        </div>
-        <a
-          className="mt-1 text-[12px] font-semibold text-[#00AEBB] transition hover:text-[#087F89]"
-          href="#"
-        >
-          전체 보기
-        </a>
-      </div>
-      {children}
-    </section>
-  );
-}
-
 export default function Home() {
   return (
     <div className="min-h-screen bg-white text-[#172129]">
@@ -175,6 +149,7 @@ export default function Home() {
 
         <div className="mx-auto flex max-w-[1440px] flex-col gap-9 px-12 pb-[140px]">
           <Section
+            id="space-search"
             title="Today's Pick"
             subtitle="지금 가장 많이 저장된 감각적인 순간을 만나보세요."
           >
@@ -191,6 +166,7 @@ export default function Home() {
           </Section>
 
           <Section
+            id="ai-match"
             title="요즘 취향 탐구"
             subtitle="MomentLit이 발견한 새로운 공간과 취향의 흐름이에요."
           >
@@ -206,6 +182,7 @@ export default function Home() {
           </Section>
 
           <Section
+            id="calendar"
             title="당신의 취향 분석"
             subtitle="저장한 순간과 검색 기록을 바탕으로 어울리는 공간을 추천해드려요."
           >

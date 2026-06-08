@@ -1,90 +1,145 @@
 "use client";
 
 import Image from "next/image";
+import type { FormEvent } from "react";
+import { useState } from "react";
 
-const navItems = ["홈", "공간 찾기", "호스트 되기", "모임 탐색"];
+const navItems = [
+  ["홈", "top"],
+  ["공간 찾기", "space-search"],
+  ["캘린더", "calendar"],
+  ["AI 공간 매칭", "ai-match"],
+];
+
+function ProfileIcon() {
+  return (
+    <span className="grid h-[31.5px] w-[31.5px] place-items-center rounded-full bg-[#99A1B1]">
+      <svg aria-hidden="true" className="h-[23.625px] w-[23.625px]" viewBox="0 0 23.625 23.625">
+        <path
+          d="M11.671875 2.953125c-2.34721 0-4.25 1.90279-4.25 4.25s1.90279 4.25 4.25 4.25 4.25-1.90279 4.25-4.25-1.90279-4.25-4.25-4.25Zm2.50807 10.39078c-1.66153-.26517-3.3546-.26517-5.01614 0l-.1781.02843c-2.34116.37364-4.06383 2.39304-4.06383 4.76382 0 1.27963 1.03734 2.31697 2.31697 2.31697h8.86606c1.27963 0 2.31697-1.03734 2.31697-2.31697 0-2.37079-1.72267-4.39019-4.06384-4.76382l-.17809-.02843Z"
+          fill="#363853"
+        />
+      </svg>
+    </span>
+  );
+}
 
 export function Header() {
+  const [activeNav, setActiveNav] = useState("공간 찾기");
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setActiveNav("공간 찾기");
+  }
+
   return (
-    <header className="border-b border-[#D7DEE2] bg-white">
+    <header className="bg-white">
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-7">
-        <a className="flex w-[164px] items-center gap-2" href="#">
+        <div className="flex w-[163.5px] items-center">
           <Image
             src="/Logo.png"
             alt="MomentLit"
             width={56}
             height={40}
             priority
-            className="h-[40px] w-[56px] object-contain"
+            className="h-10 w-14 object-contain"
           />
-        </a>
+        </div>
 
-        <nav className="flex h-16 items-center gap-9 text-[13px] font-medium text-[#303A41]">
-          {navItems.map((item) => (
-            <a key={item} className="transition hover:text-[#09AFC0]" href="#">
-              {item}
-            </a>
-          ))}
+        <nav className="flex h-16 items-center gap-2 text-[18px] font-semibold leading-[1.3] text-[#67728A]">
+          {navItems.map(([item]) => {
+            const active = item === activeNav;
+
+            return (
+              <button
+                className={`grid h-16 place-items-center rounded-full px-[18px] transition ${
+                  active
+                    ? "bg-[#00ADB5]/[0.07] text-[#00ADB5]"
+                    : "hover:text-[#00ADB5]"
+                }`}
+                key={item}
+                onClick={() => setActiveNav(item)}
+                type="button"
+              >
+                {item}
+              </button>
+            );
+          })}
         </nav>
 
-        <div className="flex w-[164px] items-center justify-end gap-5">
-          <a
-            className="rounded-full bg-[#131B22] px-4 py-1.5 text-[10px] font-semibold uppercase tracking-normal text-white"
-            href="#"
-          >
-            My Page
-          </a>
+        <div className="flex w-[163.5px] items-center justify-end gap-5">
           <button
-            aria-label="알림"
-            className="relative h-6 w-6 text-[#30404A] transition hover:text-[#09AFC0]"
+            className="rounded-full bg-[#222831] px-3.5 py-2 text-[12px] font-bold text-white"
+            onClick={() => setActiveNav("공간 찾기")}
             type="button"
           >
-            <span className="absolute left-[7px] top-[5px] h-[11px] w-[10px] rounded-t-full border border-current" />
-            <span className="absolute bottom-[4px] left-[10px] h-1 w-1 rounded-full bg-current" />
-            <span className="absolute right-[4px] top-[2px] h-1.5 w-1.5 rounded-full bg-[#FF4E8A]" />
+            MY PICK
+          </button>
+          <button
+            aria-label="알림"
+            type="button"
+          >
+            <Image
+              src="/bell.svg"
+              alt=""
+              aria-hidden="true"
+              width={24}
+              height={24}
+              className="h-6 w-6"
+            />
           </button>
           <button
             aria-label="메시지"
-            className="relative h-6 w-6 text-[#30404A] transition hover:text-[#09AFC0]"
             type="button"
           >
-            <span className="absolute left-[4px] top-[5px] h-[13px] w-[16px] rounded-full border border-current" />
-            <span className="absolute bottom-[5px] left-[8px] h-[5px] w-[6px] rotate-[-28deg] border-b border-l border-current bg-white" />
+            <Image
+              src="/plain.svg"
+              alt=""
+              aria-hidden="true"
+              width={24}
+              height={24}
+              className="h-6 w-6"
+            />
           </button>
           <button
             aria-label="프로필"
-            className="grid h-[31.5px] w-[31.5px] place-items-center rounded-full bg-[#DDE5EA] text-[12px] font-semibold text-[#56626B] shadow-sm"
             type="button"
           >
-            M
+            <ProfileIcon />
           </button>
         </div>
       </div>
 
-      <div className="border-t border-[#E5EAED]">
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-center px-7">
-          <form
-            className="flex h-8 w-[760px] items-center rounded-full border border-[#C9DDE0] bg-white pl-8 pr-1.5"
-            onSubmit={(event) => event.preventDefault()}
+      <div className="flex h-16 items-start justify-center bg-white px-7 pb-2">
+        <form
+          className="flex w-[760px] items-center gap-[14.4px] rounded-[90px] bg-[#F7FBFB] py-2 pl-[18px] pr-2"
+          onSubmit={handleSearch}
+        >
+          <span className="rounded-full bg-[#00ADB5]/[0.08] px-3.5 py-2 text-[13px] font-bold text-[#00ADB5]">
+            HOT 키워드
+          </span>
+          <input
+            aria-label="검색"
+            className="h-8 w-[560px] bg-transparent text-[16px] font-medium text-[#67728A] outline-none placeholder:text-[#67728A]"
+            name="query"
+            placeholder="성수 팝업, 캐릭터 전시, 부산 로컬 마켓처럼 검색해보세요."
+            type="search"
+          />
+          <button
+            aria-label="검색"
+            className="grid h-8 w-8 place-items-center"
+            type="submit"
           >
-            <span className="mr-3 rounded-full bg-[#D8FAFC] px-3 py-1 text-[10px] font-semibold text-[#06A9B8]">
-              HOT PICK
-            </span>
-            <input
-              aria-label="검색"
-              className="min-w-0 flex-1 bg-transparent text-[12px] text-[#52616B] outline-none placeholder:text-[#98A6AD]"
-              placeholder="공간, 취향, 키워드, 도시 모두 검색해보세요"
-              type="search"
+            <Image
+              src="/search.svg"
+              alt=""
+              aria-hidden="true"
+              width={32}
+              height={32}
+              className="h-8 w-8"
             />
-            <button
-              aria-label="검색"
-              className="grid h-6 w-6 place-items-center rounded-full bg-[#11B7C4] text-white"
-              type="submit"
-            >
-              <span className="relative h-3 w-3 rounded-full border border-current after:absolute after:-bottom-[3px] after:-right-[3px] after:h-[5px] after:w-px after:rotate-[-45deg] after:bg-current" />
-            </button>
-          </form>
-        </div>
+          </button>
+        </form>
       </div>
     </header>
   );
