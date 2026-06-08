@@ -1,14 +1,19 @@
+"use client";
+
+import { useState } from "react";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 
 const menuItems = [
-  { label: "정보 수정", active: true },
-  { label: "나의 공간 및 팝업", active: false },
-  { label: "나의 매칭", active: false },
-  { label: "로그아웃", active: false },
+  "정보 수정",
+  "나의 공간 및 팝업",
+  "나의 매칭",
+  "로그아웃",
 ];
 
 function Sidebar() {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
   return (
     <aside className="flex w-80 flex-col gap-5" aria-label="마이페이지 메뉴">
       <section className="flex flex-col gap-[18px] rounded-[28px] bg-[#EEF8F8] p-6">
@@ -24,19 +29,24 @@ function Sidebar() {
         <p className="px-[18px] pt-1 text-[14px] font-bold text-[#222831]">
           마이페이지 메뉴
         </p>
-        {menuItems.map(({ active, label }) => (
-          <button
-            className={`flex w-full items-center rounded-[20px] px-[18px] py-4 text-left text-[17px] ${
-              active
-                ? "bg-[#00ADB5] font-bold text-white"
-                : "bg-[#F7FBFB] font-semibold text-[#4F5D73]"
-            }`}
-            key={label}
-            type="button"
-          >
-            {label}
-          </button>
-        ))}
+        {menuItems.map((label, index) => {
+          const active = index === selectedIndex;
+
+          return (
+            <button
+              className={`flex w-full items-center rounded-[20px] px-[18px] py-4 text-left text-[17px] ${
+                active
+                  ? "bg-[#00ADB5] font-bold text-white"
+                  : "bg-[#F7FBFB] font-semibold text-[#4F5D73]"
+              }`}
+              key={label}
+              onClick={() => setSelectedIndex(index)}
+              type="button"
+            >
+              {label}
+            </button>
+          );
+        })}
       </nav>
     </aside>
   );
