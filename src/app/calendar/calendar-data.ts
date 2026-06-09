@@ -66,7 +66,7 @@ export const calendarDays: CalendarDate[] = [
 ];
 
 export function getCalendarDate(slug: string) {
-  const found = calendarDays.find((item) => item.href.endsWith(slug));
+  const found = calendarDays.find((item) => item.href.split("/").pop() === slug);
   if (!found) {
     return null;
   }

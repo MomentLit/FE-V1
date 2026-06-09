@@ -6,5 +6,6 @@ export default async function CalendarSelectedDatePage({
   params: Promise<{ date: string }>;
 }) {
   const { date } = await params;
-  redirect(`/calendar/selected?date=${date}`);
+  const query = new URLSearchParams({ date }).toString();
+  redirect(`/calendar/selected?${query}`);
 }
