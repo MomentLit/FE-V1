@@ -310,6 +310,149 @@ function MySpaces() {
   );
 }
 
+const matchingStats = [
+  { label: "받은 요청", value: "8", valueClass: "text-[#00ADB5]" },
+  { label: "검토 대기", value: "3", valueClass: "text-[#C56A00]" },
+  { label: "확정 매칭", value: "5", valueClass: "text-[#12A66A]" },
+];
+
+const matchingRequests = [
+  {
+    popup: "캐릭터 문구 팝업",
+    applicant: "김하린",
+    space: "성수 아트 라운지",
+    date: "05.28",
+  },
+  {
+    popup: "로컬 디저트 마켓",
+    applicant: "박도윤",
+    space: "연남 포토 살롱",
+    date: "05.27",
+  },
+  {
+    popup: "신진 작가 전시",
+    applicant: "이서연",
+    space: "전포 카페 갤러리",
+    date: "05.26",
+  },
+  {
+    popup: "뷰티 체험 부스",
+    applicant: "최유민",
+    space: "해운대 루프 스튜디오",
+    date: "05.25",
+  },
+];
+
+function MyMatching() {
+  const [selectedFilter, setSelectedFilter] = useState("전체");
+
+  return (
+    <section className="flex w-[932px] flex-col gap-6">
+      <div className="flex flex-col gap-2.5 pb-1">
+        <p className="text-[14px] font-bold text-[#00ADB5]">
+          MOMENTLIT MATCHING
+        </p>
+        <h2 className="text-[42px] font-bold text-[#222831]">
+          받은 매칭 요청
+        </h2>
+        <p className="w-[760px] text-[18px] font-medium text-[#5E687E]">
+          팝업 운영자가 내 공간에 보낸 매칭 요청을 확인하고 수락 또는 거절할 수
+          있어요.
+        </p>
+      </div>
+
+      <div className="flex gap-4">
+        {matchingStats.map(({ label, value, valueClass }) => (
+          <article
+            className="flex flex-1 flex-col gap-2 rounded-3xl border border-[#DDEEEF] bg-white p-[22px]"
+            key={label}
+          >
+            <p className="text-[14px] font-bold text-[#5E687E]">{label}</p>
+            <strong className={`text-[34px] font-bold ${valueClass}`}>
+              {value}
+            </strong>
+          </article>
+        ))}
+      </div>
+
+      <section className="flex flex-col gap-5 rounded-[30px] border border-[#DDEEEF] bg-white p-7">
+        <div className="flex items-center justify-between">
+          <div className="flex w-[520px] flex-col gap-1.5">
+            <h3 className="text-[26px] font-bold text-[#222831]">
+              받은 요청 목록
+            </h3>
+            <p className="text-[15px] font-medium text-[#5E687E]">
+              총 8개의 요청 중 검토 대기 3개가 있어요.
+            </p>
+          </div>
+          <div className="flex gap-2.5">
+            {["전체", "대기", "확정"].map((filter) => {
+              const active = filter === selectedFilter;
+
+              return (
+                <button
+                  className={`rounded-full px-3 py-2 text-[13px] font-bold ${
+                    active
+                      ? "bg-[#E8F6F7] text-[#00ADB5]"
+                      : "bg-[#F3F7F7] text-[#5E687E]"
+                  }`}
+                  key={filter}
+                  onClick={() => setSelectedFilter(filter)}
+                  type="button"
+                >
+                  {filter}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-[22px] border border-[#DDEEEF]">
+          <div className="grid h-14 grid-cols-[270px_130px_210px_110px_156px] bg-[#EEF8F8] text-[13px] font-bold text-[#5E687E]">
+            {["팝업", "신청자", "희망 공간", "요청일", "검토"].map(
+              (heading) => (
+                <div className="flex items-center px-4" key={heading}>
+                  {heading}
+                </div>
+              ),
+            )}
+          </div>
+
+          {matchingRequests.map(({ applicant, date, popup, space }) => (
+            <article
+              className="grid h-[82px] grid-cols-[270px_130px_210px_110px_156px] border-b border-[#EEF1F1] bg-white text-[14px] text-[#222831] last:border-b-0"
+              key={popup}
+            >
+              <div className="flex items-center px-4 font-bold">{popup}</div>
+              <div className="flex items-center px-4 font-semibold">
+                {applicant}
+              </div>
+              <div className="flex items-center px-4 font-semibold">
+                {space}
+              </div>
+              <div className="flex items-center px-4 font-semibold">{date}</div>
+              <div className="flex items-center gap-2 px-4">
+                <button
+                  className="rounded-full bg-[#00ADB5] px-3.5 py-2.5 text-[14px] font-bold text-white"
+                  type="button"
+                >
+                  수락
+                </button>
+                <button
+                  className="rounded-full border border-[#DDEEEF] bg-[#F3F7F7] px-3.5 py-2.5 text-[14px] font-bold text-[#5E687E]"
+                  type="button"
+                >
+                  거절
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </section>
+  );
+}
+
 export default function MyPage() {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -323,6 +466,7 @@ export default function MyPage() {
         />
         {selectedIndex === 0 ? <ProfileEdit /> : null}
         {selectedIndex === 1 ? <MySpaces /> : null}
+        {selectedIndex === 2 ? <MyMatching /> : null}
       </main>
       <Footer />
     </div>
