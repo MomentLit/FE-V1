@@ -167,7 +167,6 @@ const spaces = [
     title: "성수 쇼룸 A",
     description: "브랜드 팝업 · 서울 성동구 · 최대 80명",
     status: "운영 중",
-    statusClass: "bg-[#E8F6F7] text-[#008992]",
     detail: "다음 예약 가능일 5월 14일 · 최근 문의 4건",
     action: "수정하기",
   },
@@ -175,7 +174,6 @@ const spaces = [
     title: "연남 팝업 라운지",
     description: "단기 행사 공간 · 서울 마포구 · 최대 45명",
     status: "검수 중",
-    statusClass: "bg-[#FFF4DE] text-[#C88700]",
     detail: "대표 이미지 교체 요청 반영 중 · 승인 대기 1건",
     action: "상세 관리",
   },
@@ -183,11 +181,23 @@ const spaces = [
     title: "한남 브랜드 전시 팝업",
     description: "예정된 팝업 · 서울 용산구 · 2026.05.22 - 2026.06.03",
     status: "모집 중",
-    statusClass: "bg-[#EAF7EA] text-[#2D8A57]",
     detail: "관심 저장 342회 · 공유 클릭 57회 · 문의 7건",
     action: "수정하기",
   },
 ];
+
+function getStatusClass(status: string) {
+  switch (status) {
+    case "운영 중":
+      return "bg-[#E8F6F7] text-[#008992]";
+    case "검수 중":
+      return "bg-[#FFF4DE] text-[#C88700]";
+    case "모집 중":
+      return "bg-[#EAF7EA] text-[#2D8A57]";
+    default:
+      return "bg-[#F1F5F6] text-[#4F5D73]";
+  }
+}
 
 function MySpaces() {
   return (
@@ -250,7 +260,6 @@ function MySpaces() {
               description,
               detail,
               status,
-              statusClass,
               title,
             }) => (
               <article
@@ -267,7 +276,7 @@ function MySpaces() {
                     </p>
                   </div>
                   <span
-                    className={`rounded-full px-3.5 py-2 text-[13px] font-bold ${statusClass}`}
+                    className={`rounded-full px-3.5 py-2 text-[13px] font-bold ${getStatusClass(status)}`}
                   >
                     {status}
                   </span>
