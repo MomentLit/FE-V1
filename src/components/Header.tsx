@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import type { FormEvent } from "react";
 import { useState } from "react";
 
@@ -68,13 +69,12 @@ export function Header() {
         </nav>
 
         <div className="flex w-[163.5px] items-center justify-end gap-5">
-          <button
+          <Link
             className="rounded-full bg-[#222831] px-3.5 py-2 text-[12px] font-bold text-white"
-            onClick={() => setActiveNav("공간 찾기")}
-            type="button"
+            href="/mypage"
           >
             MY PICK
-          </button>
+          </Link>
           <button
             aria-label="알림"
             type="button"
