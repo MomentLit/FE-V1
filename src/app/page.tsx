@@ -79,23 +79,33 @@ type SpacesResponse = {
   };
 };
 
-async function getSpaces() {
+async function getSpaces(): Promise<{ spaces: Space[]; hasError: boolean }> {
+  const baseUrl =
+    process.env.SPACES_API_BASE ?? process.env.NEXT_PUBLIC_SPACES_API_BASE;
+
+  if (!baseUrl) {
+    return { spaces: [], hasError: true };
+  }
+
   try {
     const response = await axios.get<SpacesResponse>(
-      "https://surely-viewing-fabulous.ngrok-free.dev/spaces",
+      `${baseUrl.replace(/\/$/, "")}/spaces`,
       {
         headers: {
           Accept: "application/json",
-          "ngrok-skip-browser-warning": "true",
         },
+        timeout: 3000,
       },
     );
 
-    return Array.isArray(response.data.data?.spaces)
-      ? response.data.data.spaces
-      : [];
+    return {
+      spaces: Array.isArray(response.data?.data?.spaces)
+        ? response.data.data.spaces
+        : [],
+      hasError: false,
+    };
   } catch {
-    return [];
+    return {spaces: [], hasError: true};
   }
 }
 
@@ -187,7 +197,7 @@ function formatPrice(price: number) {
 }
 
 export default async function Home() {
-  const spaces = await getSpaces();
+  const {spaces, hasError} = await getSpaces();
 
   return (
     <div className="min-h-screen bg-white text-[#172129]">
@@ -201,7 +211,11 @@ export default async function Home() {
             title="Today's Pick"
             subtitle="지금 가장 많이 저장된 감각적인 순간을 만나보세요."
           >
-            {spaces.length > 0 ? (
+            {hasError ? (
+              <p className="py-10 text-center text-[14px] text-[#B34848]">
+                공간 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+              </p>
+            ) : spaces.length > 0 ? (
               <div className="grid grid-cols-6 gap-6">
                 {spaces.map((space, index) => (
                   <Card
@@ -215,7 +229,7 @@ export default async function Home() {
               </div>
             ) : (
               <p className="py-10 text-center text-[14px] text-[#6A767E]">
-                공간 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+                현재 등록된 공간이 없습니다.
               </p>
             )}
           </Section>
