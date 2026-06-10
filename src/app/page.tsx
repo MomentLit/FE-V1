@@ -1,7 +1,10 @@
+import axios from "axios";
 import Image from "next/image";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Section } from "@/components/Section";
+
+export const dynamic = "force-dynamic";
 
 const heroCards = [
   {
@@ -36,15 +39,6 @@ const heroCards = [
   },
 ];
 
-const todayCards = [
-  ["피크닉 감성 공간", "서울 성수동", "1시간 전"],
-  ["밤 산책 사진 모임", "서울 망원동", "3시간 전"],
-  ["작은 북토크 살롱", "서울 연남동", "오늘 19:00"],
-  ["필름 카메라 클래스", "서울 을지로", "예약 가능"],
-  ["주말 빈티지 마켓", "서울 한남동", "D-2"],
-  ["햇살 드로잉 룸", "서울 합정동", "신규"],
-];
-
 const tasteCards = [
   ["혼자 집중하는 카페", "잔잔한 음악과 콘센트가 있는 곳", "4.9"],
   ["책 읽기 좋은 공간", "오후 빛이 오래 머무는 작은 서가", "4.8"],
@@ -68,6 +62,42 @@ const analysisCards = [
   ["반려동물 가능", "야외 좌석"],
   ["새로운 취향", "AI 추천 업데이트"],
 ];
+
+type Space = {
+  space_id: number;
+  name: string;
+  address: string;
+  thumbnail_url: string;
+  price_per_hour: number;
+  category: string;
+};
+
+type SpacesResponse = {
+  message: string;
+  data: {
+    spaces: Space[];
+  };
+};
+
+async function getSpaces() {
+  try {
+    const response = await axios.get<SpacesResponse>(
+      "https://surely-viewing-fabulous.ngrok-free.dev/spaces",
+      {
+        headers: {
+          Accept: "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      },
+    );
+
+    return Array.isArray(response.data.data?.spaces)
+      ? response.data.data.spaces
+      : [];
+  } catch {
+    return [];
+  }
+}
 
 function Hero() {
   return (
@@ -114,18 +144,30 @@ function Hero() {
 
 function Card({
   accent,
+  image,
   meta,
   title,
 }: {
   accent?: boolean;
+  image?: string;
   meta: string;
   title: string;
 }) {
   return (
     <article className="group w-full">
       <div className="relative aspect-[160/205] overflow-hidden rounded-[6px] border border-[#C4CCD1] bg-[#EEF1F3] card-pattern">
+        {image ? (
+          <Image
+            src={image}
+            alt={`${title} 공간`}
+            fill
+            unoptimized
+            sizes="160px"
+            className="object-cover"
+          />
+        ) : null}
         {accent ? (
-          <span className="absolute right-2 top-2 text-[14px] leading-none text-[#FF4E8A]">
+          <span className="absolute right-2 top-2 z-10 text-[14px] leading-none text-[#FF4E8A]">
             ♥
           </span>
         ) : null}
@@ -140,7 +182,13 @@ function Card({
   );
 }
 
-export default function Home() {
+function formatPrice(price: number) {
+  return `${new Intl.NumberFormat("ko-KR").format(price)}원/시간`;
+}
+
+export default async function Home() {
+  const spaces = await getSpaces();
+
   return (
     <div className="min-h-screen bg-white text-[#172129]">
       <Header />
@@ -153,16 +201,23 @@ export default function Home() {
             title="Today's Pick"
             subtitle="지금 가장 많이 저장된 감각적인 순간을 만나보세요."
           >
-            <div className="grid grid-cols-6 gap-6">
-              {todayCards.map(([title, place, time], index) => (
-                <Card
-                  accent={index === 2}
-                  key={title}
-                  meta={`${place} · ${time}`}
-                  title={title}
-                />
-              ))}
-            </div>
+            {spaces.length > 0 ? (
+              <div className="grid grid-cols-6 gap-6">
+                {spaces.map((space, index) => (
+                  <Card
+                    accent={index === 2}
+                    image={space.thumbnail_url}
+                    key={space.space_id}
+                    meta={`${space.address} · ${formatPrice(space.price_per_hour)} · ${space.category}`}
+                    title={space.name}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="py-10 text-center text-[14px] text-[#6A767E]">
+                공간 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+              </p>
+            )}
           </Section>
 
           <Section
