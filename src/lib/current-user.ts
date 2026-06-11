@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export type CurrentUser = {
-  image_url: string;
+  image_url: string | null;
   email: string;
   name: string;
   created_at: string;
@@ -10,6 +10,11 @@ export type CurrentUser = {
 type CurrentUserResponse = {
   message: string;
   data: CurrentUser;
+};
+
+export type UpdateCurrentUserInput = {
+  name: string | null;
+  image_url: string | null;
 };
 
 const CURRENT_USER_KEY = "momentlit.currentUser";
@@ -62,6 +67,25 @@ export async function fetchCurrentUser() {
   } finally {
     inFlightPromise = null;
   }
+}
+
+export async function updateCurrentUser(input: UpdateCurrentUserInput) {
+  const accessToken = getAccessToken();
+
+  if (!accessToken) {
+    throw new Error("Access token is missing.");
+  }
+
+  await axios.patch("/api/users/me", input, {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    timeout: 20000,
+  });
+
+  return fetchCurrentUser();
 }
 
 export function getCachedCurrentUser() {
