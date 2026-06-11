@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import {
+  type CurrentUser,
+  fetchCurrentUser,
+  getCachedCurrentUser,
+} from "@/lib/current-user";
 
 const menuItems = [
   "정보 수정",
@@ -14,18 +20,31 @@ const menuItems = [
 function Sidebar({
   selectedIndex,
   setSelectedIndex,
+  user,
 }: {
   selectedIndex: number;
   setSelectedIndex: (index: number) => void;
+  user: CurrentUser;
 }) {
   return (
     <aside className="flex w-80 flex-col gap-5" aria-label="마이페이지 메뉴">
       <section className="flex flex-col gap-[18px] rounded-[28px] bg-[#EEF8F8] p-6">
-        <div className="grid h-[72px] w-[72px] place-items-center rounded-full bg-[#00ADB5] text-[24px] font-bold text-white">
-          홍
+        <div className="relative grid h-[72px] w-[72px] place-items-center overflow-hidden rounded-full bg-[#00ADB5] text-[24px] font-bold text-white">
+          {user.image_url ? (
+            <Image
+              src={user.image_url}
+              alt={`${user.name} 프로필`}
+              fill
+              unoptimized
+              sizes="72px"
+              className="object-cover"
+            />
+          ) : (
+            user.name.charAt(0)
+          )}
         </div>
         <h1 className="text-[28px] font-bold text-[#222831]">
-          홍길동 님, 반가워요
+          {user.name} 님, 반가워요
         </h1>
       </section>
 
@@ -56,29 +75,27 @@ function Sidebar({
   );
 }
 
-const profileFields = [
-  { id: "name", label: "이름", value: "홍길동", type: "text" },
-  {
-    id: "email",
-    label: "이메일",
-    value: "momentlit@brand.com",
-    type: "email",
-  },
-  {
-    id: "phone",
-    label: "연락처",
-    value: "010-1234-5678",
-    type: "tel",
-  },
-  {
-    id: "brand",
-    label: "브랜드/활동명",
-    value: "MomentLit Studio",
-    type: "text",
-  },
-];
+function formatCreatedAt(createdAt: string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(createdAt));
+}
 
-function ProfileEdit() {
+function ProfileEdit({ user }: { user: CurrentUser }) {
+  const profileFields = [
+    { id: "name", label: "이름", value: user.name, type: "text" },
+    { id: "email", label: "이메일", value: user.email, type: "email" },
+    {
+      id: "created-at",
+      label: "가입일",
+      value: formatCreatedAt(user.created_at),
+      type: "text",
+      readOnly: true,
+    },
+  ];
+
   return (
     <section className="flex w-[932px] flex-col gap-6">
       <div className="flex flex-col gap-2.5 pb-1">
@@ -98,31 +115,29 @@ function ProfileEdit() {
         </p>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-6">
-          {profileFields.map(({ id, label, type, value }) => (
-            <label className="flex flex-col gap-2" htmlFor={id} key={id}>
-              <span className="text-[14px] font-medium text-[#111111]">
-                {label}
-              </span>
-              <input
-                className="h-[52px] rounded-2xl border border-[#C8E4E6] bg-white px-[18px] text-[15px] text-[#666666] outline-none transition focus:border-[#00ADB5]"
-                defaultValue={value}
-                id={id}
-                type={type}
-              />
-            </label>
-          ))}
+          {profileFields.map(
+            ({ id, label, readOnly = false, type, value }) => (
+              <label
+                className={`flex flex-col gap-2 ${
+                  id === "created-at" ? "col-span-2" : ""
+                }`}
+                htmlFor={id}
+                key={id}
+              >
+                <span className="text-[14px] font-medium text-[#111111]">
+                  {label}
+                </span>
+                <input
+                  className="h-[52px] rounded-2xl border border-[#C8E4E6] bg-white px-[18px] text-[15px] text-[#666666] outline-none transition focus:border-[#00ADB5] read-only:bg-[#F8FBFB]"
+                  defaultValue={value}
+                  id={id}
+                  readOnly={readOnly}
+                  type={type}
+                />
+              </label>
+            ),
+          )}
         </div>
-
-        <label className="flex flex-col gap-2" htmlFor="introduction">
-          <span className="text-[14px] font-medium text-[#222831]">
-            소개 문구
-          </span>
-          <textarea
-            className="h-36 resize-none rounded-[20px] border border-[#C8E4E6] bg-[#F8FBFB] p-[18px] text-[15px] font-medium text-[#4F5D73] outline-none transition focus:border-[#00ADB5]"
-            defaultValue="브랜드와 공간 큐레이션을 함께 기획하며, 시즌 팝업과 전시 프로젝트를 주로 운영하고 있습니다."
-            id="introduction"
-          />
-        </label>
 
         <div className="flex justify-end gap-3">
           <button
@@ -455,18 +470,75 @@ function MyMatching() {
 
 export default function MyPage() {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [profileError, setProfileError] = useState("");
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadCurrentUser() {
+      const cachedUser = getCachedCurrentUser();
+
+      if (cachedUser) {
+        if (active) {
+          setCurrentUser(cachedUser);
+          setProfileLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const user = await fetchCurrentUser();
+
+        if (active) {
+          setCurrentUser(user);
+        }
+      } catch {
+        if (active) {
+          setProfileError("프로필 정보를 불러오지 못했습니다.");
+        }
+      } finally {
+        if (active) {
+          setProfileLoading(false);
+        }
+      }
+    }
+
+    void loadCurrentUser();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F8FBFB] text-[#222831]">
       <Header />
       <main className="mx-auto mt-7 flex min-h-[1404px] w-[1280px] gap-7 pb-[140px]">
-        <Sidebar
-          selectedIndex={selectedIndex}
-          setSelectedIndex={setSelectedIndex}
-        />
-        {selectedIndex === 0 ? <ProfileEdit /> : null}
-        {selectedIndex === 1 ? <MySpaces /> : null}
-        {selectedIndex === 2 ? <MyMatching /> : null}
+        {profileLoading ? (
+          <p className="w-full py-20 text-center text-[15px] text-[#5E687E]">
+            프로필 정보를 불러오는 중입니다.
+          </p>
+        ) : profileError || !currentUser ? (
+          <p
+            className="w-full py-20 text-center text-[15px] text-[#B34848]"
+            role="alert"
+          >
+            {profileError || "프로필 정보를 확인할 수 없습니다."}
+          </p>
+        ) : (
+          <>
+            <Sidebar
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              user={currentUser}
+            />
+            {selectedIndex === 0 ? <ProfileEdit user={currentUser} /> : null}
+            {selectedIndex === 1 ? <MySpaces /> : null}
+            {selectedIndex === 2 ? <MyMatching /> : null}
+          </>
+        )}
       </main>
       <Footer />
     </div>
