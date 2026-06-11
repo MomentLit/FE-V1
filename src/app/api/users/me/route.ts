@@ -35,13 +35,24 @@ export async function GET(request: Request) {
     return NextResponse.json(response.data, { status: response.status });
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return NextResponse.json(error.response.data, {
+      console.error("Current user upstream request failed", {
+        message: error.message,
         status: error.response.status,
+        statusText: error.response.statusText,
       });
+
+      return NextResponse.json(
+        { error: "UPSTREAM_SERVICE_ERROR" },
+        { status: error.response.status },
+      );
     }
 
+    console.error("Current user upstream request failed", {
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+
     return NextResponse.json(
-      { message: "Failed to load the current user." },
+      { error: "UPSTREAM_SERVICE_UNAVAILABLE" },
       { status: 502 },
     );
   }
