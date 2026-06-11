@@ -13,7 +13,7 @@ export type CalendarDate = {
 };
 
 const SEOUL_TIME_ZONE = "Asia/Seoul";
-const weekdayOrder = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"] as const;
+const weekdayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 function getSeoulDateParts(date: Date) {
   const parts = new Intl.DateTimeFormat("en-US", {
