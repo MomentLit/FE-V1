@@ -2,8 +2,7 @@ import axios from "axios";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const baseUrl =
-    process.env.SPACES_API_BASE ?? process.env.NEXT_PUBLIC_API_BASE;
+  const baseUrl = process.env.SPACES_API_BASE;
   const authorization = request.headers.get("authorization");
 
   if (!baseUrl) {
