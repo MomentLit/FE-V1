@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
-import { fetchCurrentUser } from "@/lib/current-user";
+import { getAccessToken } from "@/lib/current-user";
 
 const navItems = [
   ["홈", "top"],
@@ -30,7 +30,6 @@ function ProfileIcon() {
 export function Header() {
   const [activeNav, setActiveNav] = useState("공간 찾기");
   const [profileError, setProfileError] = useState("");
-  const [profileLoading, setProfileLoading] = useState(false);
   const router = useRouter();
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
@@ -38,18 +37,15 @@ export function Header() {
     setActiveNav("공간 찾기");
   }
 
-  async function handleProfileClick() {
+  function handleProfileClick() {
     setProfileError("");
-    setProfileLoading(true);
 
-    try {
-      await fetchCurrentUser();
-      router.push("/mypage");
-    } catch {
+    if (!getAccessToken()) {
       setProfileError("로그인 정보를 확인해주세요.");
-    } finally {
-      setProfileLoading(false);
+      return;
     }
+
+    router.push("/mypage");
   }
 
   return (
@@ -123,7 +119,6 @@ export function Header() {
           <button
             aria-label="프로필"
             aria-describedby={profileError ? "profile-error" : undefined}
-            disabled={profileLoading}
             onClick={handleProfileClick}
             type="button"
           >

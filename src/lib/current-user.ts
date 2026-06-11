@@ -13,8 +13,9 @@ type CurrentUserResponse = {
 };
 
 const CURRENT_USER_KEY = "momentlit.currentUser";
+let inFlightPromise: Promise<CurrentUser> | null = null;
 
-function getAccessToken() {
+export function getAccessToken() {
   return (
     window.localStorage.getItem("accessToken") ??
     window.localStorage.getItem("access_token")
@@ -22,26 +23,38 @@ function getAccessToken() {
 }
 
 export async function fetchCurrentUser() {
+  if (inFlightPromise) {
+    return inFlightPromise;
+  }
+
   const accessToken = getAccessToken();
 
   if (!accessToken) {
     throw new Error("Access token is missing.");
   }
 
-  const response = await axios.get<CurrentUserResponse>("/api/users/me", {
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    timeout: 5000,
-  });
+  inFlightPromise = axios
+    .get<CurrentUserResponse>("/api/users/me", {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      timeout: 5000,
+    })
+    .then((response) => {
+      window.sessionStorage.setItem(
+        CURRENT_USER_KEY,
+        JSON.stringify(response.data.data),
+      );
 
-  window.sessionStorage.setItem(
-    CURRENT_USER_KEY,
-    JSON.stringify(response.data.data),
-  );
+      return response.data.data;
+    });
 
-  return response.data.data;
+  try {
+    return await inFlightPromise;
+  } finally {
+    inFlightPromise = null;
+  }
 }
 
 export function getCachedCurrentUser() {
