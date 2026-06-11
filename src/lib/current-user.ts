@@ -13,12 +13,19 @@ type CurrentUserResponse = {
 };
 
 const CURRENT_USER_KEY = "momentlit.currentUser";
+export const ACCESS_TOKEN_KEY = "accessToken";
+export const LEGACY_ACCESS_TOKEN_KEY = "access_token";
 let inFlightPromise: Promise<CurrentUser> | null = null;
 
 export function getAccessToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  // Check the legacy key while existing sessions migrate to the canonical key.
   return (
-    window.localStorage.getItem("accessToken") ??
-    window.localStorage.getItem("access_token")
+    window.localStorage.getItem(ACCESS_TOKEN_KEY) ??
+    window.localStorage.getItem(LEGACY_ACCESS_TOKEN_KEY)
   );
 }
 
