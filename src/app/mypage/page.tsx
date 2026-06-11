@@ -76,11 +76,17 @@ function Sidebar({
 }
 
 function formatCreatedAt(createdAt: string) {
+  const date = new Date(createdAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return "날짜 정보 없음";
+  }
+
   return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  }).format(new Date(createdAt));
+  }).format(date);
 }
 
 function ProfileEdit({ user }: { user: CurrentUser }) {
