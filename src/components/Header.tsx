@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { getAccessToken } from "@/lib/current-user";
 
 const navItems = [
   ["홈", "top"],
@@ -27,10 +29,23 @@ function ProfileIcon() {
 
 export function Header() {
   const [activeNav, setActiveNav] = useState("공간 찾기");
+  const [profileError, setProfileError] = useState("");
+  const router = useRouter();
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setActiveNav("공간 찾기");
+  }
+
+  function handleProfileClick() {
+    setProfileError("");
+
+    if (!getAccessToken()) {
+      setProfileError("로그인 정보를 확인해주세요.");
+      return;
+    }
+
+    router.push("/mypage");
   }
 
   return (
@@ -103,10 +118,17 @@ export function Header() {
           </button>
           <button
             aria-label="프로필"
+            aria-describedby={profileError ? "profile-error" : undefined}
+            onClick={handleProfileClick}
             type="button"
           >
             <ProfileIcon />
           </button>
+          {profileError ? (
+            <span className="sr-only" id="profile-error" role="alert">
+              {profileError}
+            </span>
+          ) : null}
         </div>
       </div>
 
