@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -101,6 +104,8 @@ export function AuthShell({
   variant,
 }: AuthShellProps) {
   const isLogin = variant === "login";
+  const [rememberMe, setRememberMe] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
   return (
     <main className="min-h-screen bg-[linear-gradient(135deg,#F6FCFC_0%,#EEF7F7_52%,#E4F1F2_100%)] p-6">
@@ -143,7 +148,14 @@ export function AuthShell({
 
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2.5 text-[14px] text-[#7B8C8E]">
-                    <span className="h-[18px] w-[18px] rounded-[5px] border border-[#B8DADD] bg-[#F4FBFB]" />
+                    <input
+                      checked={rememberMe}
+                      className="h-[18px] w-[18px] cursor-pointer rounded-[5px] border border-[#B8DADD] bg-[#F4FBFB] accent-[#00ADB5]"
+                      id="remember-me"
+                      name="rememberMe"
+                      onChange={(event) => setRememberMe(event.target.checked)}
+                      type="checkbox"
+                    />
                     로그인 상태 유지
                   </label>
                   <button className="text-[13px] font-medium text-[#008992]" type="button">
@@ -177,7 +189,14 @@ export function AuthShell({
                 <Field label="비밀번호 확인" placeholder="••••••••" type="password" />
 
                 <label className="my-2 flex items-center gap-2.5 py-1.5 text-[13px] text-[#7B8C8E]">
-                  <span className="h-[18px] w-[18px] rounded-[5px] border border-[#B8DADD] bg-[#F4FBFB]" />
+                  <input
+                    checked={agreeTerms}
+                    className="h-[18px] w-[18px] cursor-pointer rounded-[5px] border border-[#B8DADD] bg-[#F4FBFB] accent-[#00ADB5]"
+                    id="agree-terms"
+                    name="agreeTerms"
+                    onChange={(event) => setAgreeTerms(event.target.checked)}
+                    type="checkbox"
+                  />
                   이용약관 및 개인정보 처리방침에 동의합니다.
                 </label>
 
