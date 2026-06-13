@@ -1,6 +1,9 @@
+"use client";
+
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Section } from "@/components/Section";
+import { useState } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +15,7 @@ const infoRows = [
   "도시의 팝업과 전시를 가장 빠르게 발견하는 큐레이션 플랫폼",
 ];
 
-function getCurrentCalendar() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const day = today.getDate();
+function getCalendar(year: number, month: number) {
   const leadingEmptyCells = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -35,7 +34,6 @@ function getCurrentCalendar() {
   }
 
   return {
-    day,
     monthLabel: `${year}년 ${month + 1}월`,
     weeks,
   };
@@ -84,7 +82,34 @@ function Tag({ children, tone = "muted" }: { children: string; tone?: "muted" | 
 }
 
 export default function HostPostPage() {
-  const { day: todayDate, monthLabel, weeks } = getCurrentCalendar();
+  const today = new Date();
+  const [displayedYear, setDisplayedYear] = useState(today.getFullYear());
+  const [displayedMonth, setDisplayedMonth] = useState(today.getMonth());
+  const { monthLabel, weeks } = getCalendar(displayedYear, displayedMonth);
+  const isCurrentMonth =
+    displayedYear === today.getFullYear() && displayedMonth === today.getMonth();
+
+  function handlePrevMonth() {
+    setDisplayedMonth((currentMonth) => {
+      if (currentMonth === 0) {
+        setDisplayedYear((currentYear) => currentYear - 1);
+        return 11;
+      }
+
+      return currentMonth - 1;
+    });
+  }
+
+  function handleNextMonth() {
+    setDisplayedMonth((currentMonth) => {
+      if (currentMonth === 11) {
+        setDisplayedYear((currentYear) => currentYear + 1);
+        return 0;
+      }
+
+      return currentMonth + 1;
+    });
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fbfb] text-[#222831]">
@@ -144,10 +169,10 @@ export default function HostPostPage() {
               <div className="flex items-center justify-between">
                 <h2 className="text-[22px] font-bold tracking-tight text-[#222831]">예약 가능 일정</h2>
                 <div className="flex gap-2">
-                  <button className="grid h-9 w-9 place-items-center rounded-full bg-white text-[16px] font-bold text-[#67728a] shadow-[0_0_0_1px_rgba(199,208,214,0.8)]" type="button">
+                  <button className="grid h-9 w-9 place-items-center rounded-full bg-white text-[16px] font-bold text-[#67728a] shadow-[0_0_0_1px_rgba(199,208,214,0.8)]" onClick={handlePrevMonth} type="button">
                     &lt;
                   </button>
-                  <button className="grid h-9 w-9 place-items-center rounded-full bg-white text-[16px] font-bold text-[#67728a] shadow-[0_0_0_1px_rgba(199,208,214,0.8)]" type="button">
+                  <button className="grid h-9 w-9 place-items-center rounded-full bg-white text-[16px] font-bold text-[#67728a] shadow-[0_0_0_1px_rgba(199,208,214,0.8)]" onClick={handleNextMonth} type="button">
                     &gt;
                   </button>
                 </div>
@@ -168,7 +193,7 @@ export default function HostPostPage() {
                   {weeks.flatMap((week, weekIndex) =>
                     week.map((day, dayIndex) => (
                       <CalendarDay
-                        active={day === String(todayDate)}
+                        active={isCurrentMonth && day === String(today.getDate())}
                         inactive={weekIndex === 0 && !day}
                         key={`${weekIndex}-${dayIndex}-${day}`}
                         value={day}
