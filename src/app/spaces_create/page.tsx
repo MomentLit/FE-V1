@@ -1,5 +1,6 @@
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { SpaceCreateForm } from "./SpaceCreateForm";
 
 const weekdayLabels = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -51,21 +52,6 @@ const calendarRows = [
   ],
 ];
 
-const fieldRows = [
-  [
-    ["카테고리", "예) 팝업 스토어 / 전시 / 쇼룸"],
-    ["지역", "예) 서울 성수동"],
-  ],
-  [
-    ["수용 인원", "예) 최대 100명"],
-    ["운영 가능 일정", "예) 평일 / 주말 모두 가능"],
-  ],
-  [
-    ["희망 대관 단가", "예) 일 120만원부터"],
-    ["연락 방식", "예) 이메일 + 플랫폼 메시지"],
-  ],
-] as const;
-
 function CalendarCell({
   value,
   tone,
@@ -89,17 +75,6 @@ function CalendarCell({
   return (
     <div className={`grid h-11 w-12 place-items-center rounded-[14px] text-[14px] font-semibold ${styles[tone]}`}>
       {value}
-    </div>
-  );
-}
-
-function FieldCard({ label, placeholder }: { label: string; placeholder: string }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="text-[14px] font-semibold text-[#222831]">{label}</span>
-      <div className="flex h-[58px] items-center rounded-[16px] border border-[#C8E4E6] bg-white px-[18px] text-[15px] font-medium text-[#99A1B1]">
-        {placeholder}
-      </div>
     </div>
   );
 }
@@ -159,12 +134,14 @@ export default function HostPostPage() {
                 <div className="flex gap-2">
                   <button
                     className="grid h-9 w-9 place-items-center rounded-full bg-white text-[16px] font-bold text-[#67728A]"
+                    aria-label="이전 달"
                     type="button"
                   >
                     &lt;
                   </button>
                   <button
                     className="grid h-9 w-9 place-items-center rounded-full bg-white text-[16px] font-bold text-[#67728A]"
+                    aria-label="다음 달"
                     type="button"
                   >
                     &gt;
@@ -204,46 +181,7 @@ export default function HostPostPage() {
           </article>
         </section>
 
-        <section className="rounded-[30px] bg-white p-7">
-          <h2 className="text-[28px] font-bold text-[#222831]">제목</h2>
-          <div className="mt-4 flex h-[58px] items-center rounded-[16px] border border-[#C8E4E6] bg-white px-[18px] text-[15px] font-medium text-[#99A1B1]">
-            예) 성수 브랜드 팝업 전용 쇼룸
-          </div>
-        </section>
-
-        <section className="rounded-[30px] bg-white p-7">
-          <h2 className="text-[28px] font-bold text-[#222831]">공간소개</h2>
-          <div className="mt-4 rounded-[24px] bg-[#F8FBFB] p-[22px]">
-            <p className="text-[16px] font-medium leading-8 text-[#4F5D73]">
-              예) 성수 메인 동선에 위치한 이 공간은 브랜드 팝업, 쇼룸, 전시에 잘 어울립니다.
-              전면 유리와 높은 층고 덕분에 낮에는 자연광이 풍부하고, 저녁에는 조명 연출이 깔끔하게 살아납니다.
-              {"\n\n"}
-              가구 배치가 유연해서 행사 성격에 맞게 동선을 구성하기 좋고, 방문객이 사진 찍기 좋은 포인트도 충분합니다.
-            </p>
-          </div>
-        </section>
-
-        <section className="rounded-[30px] bg-white p-7">
-          <h2 className="text-[28px] font-bold text-[#222831]">공간정보</h2>
-          <div className="mt-4 grid gap-4">
-            {fieldRows.map((row, rowIndex) => (
-              <div className="grid gap-4 lg:grid-cols-2" key={rowIndex}>
-                {row.map(([label, placeholder]) => (
-                  <FieldCard key={label} label={label} placeholder={placeholder} />
-                ))}
-              </div>
-            ))}
-
-            <div className="mt-2 flex w-full justify-end gap-3">
-              <button className="h-14 w-[180px] rounded-full bg-[#F3F7F7] text-[15px] font-medium text-[#4F5D73]" type="button">
-                임시 저장
-              </button>
-              <button className="h-14 w-[220px] rounded-full bg-[#00ADB5] text-[15px] font-medium text-white" type="button">
-                등록 요청하기
-              </button>
-            </div>
-          </div>
-        </section>
+        <SpaceCreateForm />
       </main>
 
       <Footer />
