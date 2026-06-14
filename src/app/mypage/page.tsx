@@ -2,10 +2,15 @@
 
 import Image from "next/image";
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import type { CurrentUser } from "@/lib/current-user";
+import {
+  type CurrentUser,
+  fetchCurrentUser,
+  getCachedCurrentUser,
+  updateCurrentUser,
+} from "@/lib/current-user";
 
 const menuItems = [
   "정보 수정",
@@ -87,14 +92,17 @@ function formatCreatedAt(createdAt: string) {
 }
 
 function ProfileEdit({
+  onUserUpdated,
   user,
 }: {
+  onUserUpdated: (user: CurrentUser) => void;
   user: CurrentUser;
 }) {
   const [name, setName] = useState(user.name);
   const [imageUrl, setImageUrl] = useState(user.image_url ?? "");
   const [saveError, setSaveError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
+  const [saving, setSaving] = useState(false);
 
   function handleCancel() {
     setName(user.name);
@@ -115,9 +123,23 @@ function ProfileEdit({
       return;
     }
 
-    setName(trimmedName);
-    setImageUrl(imageUrl.trim());
-    setSaveMessage("프로필 정보가 화면에만 반영되었습니다.");
+    setSaving(true);
+
+    try {
+      const updatedUser = await updateCurrentUser({
+        name: trimmedName,
+        image_url: imageUrl.trim() || null,
+      });
+
+      setName(updatedUser.name);
+      setImageUrl(updatedUser.image_url ?? "");
+      onUserUpdated(updatedUser);
+      setSaveMessage("프로필 정보가 저장되었습니다.");
+    } catch {
+      setSaveError("프로필 정보를 저장하지 못했습니다.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -211,6 +233,7 @@ function ProfileEdit({
         <div className="flex justify-end gap-3">
           <button
             className="h-14 w-[180px] rounded-full bg-[#F3F7F7] text-[15px] font-medium text-[#4F5D73]"
+            disabled={saving}
             onClick={handleCancel}
             type="button"
           >
@@ -218,9 +241,10 @@ function ProfileEdit({
           </button>
           <button
             className="h-14 w-[220px] rounded-full bg-[#00ADB5] text-[15px] font-medium text-white disabled:opacity-60"
+            disabled={saving}
             type="submit"
           >
-            저장하기
+            {saving ? "저장 중..." : "저장하기"}
           </button>
         </div>
       </form>
@@ -540,27 +564,80 @@ function MyMatching() {
 
 export default function MyPage() {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const currentUser: CurrentUser = {
-    name: "홍길동",
-    email: "momentlit@brand.com",
-    image_url: null,
-    created_at: "2026-05-14T00:00:00.000Z",
-  };
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [profileError, setProfileError] = useState("");
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadCurrentUser() {
+      const cachedUser = getCachedCurrentUser();
+
+      if (cachedUser) {
+        if (active) {
+          setCurrentUser(cachedUser);
+          setProfileLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const user = await fetchCurrentUser();
+
+        if (active) {
+          setCurrentUser(user);
+        }
+      } catch {
+        if (active) {
+          setProfileError("프로필 정보를 불러오지 못했습니다.");
+        }
+      } finally {
+        if (active) {
+          setProfileLoading(false);
+        }
+      }
+    }
+
+    void loadCurrentUser();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F8FBFB] text-[#222831]">
       <Header />
       <main className="mx-auto mt-7 flex min-h-[1404px] w-[1280px] gap-7 pb-[140px]">
-        <>
-          <Sidebar
-            selectedIndex={selectedIndex}
-            setSelectedIndex={setSelectedIndex}
-            user={currentUser}
-          />
-          {selectedIndex === 0 ? <ProfileEdit user={currentUser} /> : null}
-          {selectedIndex === 1 ? <MySpaces /> : null}
-          {selectedIndex === 2 ? <MyMatching /> : null}
-        </>
+        {profileLoading ? (
+          <p className="w-full py-20 text-center text-[15px] text-[#5E687E]">
+            프로필 정보를 불러오는 중입니다.
+          </p>
+        ) : profileError || !currentUser ? (
+          <p
+            className="w-full py-20 text-center text-[15px] text-[#B34848]"
+            role="alert"
+          >
+            {profileError || "프로필 정보를 확인할 수 없습니다."}
+          </p>
+        ) : (
+          <>
+            <Sidebar
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              user={currentUser}
+            />
+            {selectedIndex === 0 ? (
+              <ProfileEdit
+                onUserUpdated={setCurrentUser}
+                user={currentUser}
+              />
+            ) : null}
+            {selectedIndex === 1 ? <MySpaces /> : null}
+            {selectedIndex === 2 ? <MyMatching /> : null}
+          </>
+        )}
       </main>
       <Footer />
     </div>
