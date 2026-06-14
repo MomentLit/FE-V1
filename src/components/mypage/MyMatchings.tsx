@@ -3,8 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   fetchReceivedMatchings,
-  type ReceivedMatching,
+  fetchSentMatchings,
+  type Matching,
 } from "@/lib/matchings";
+
+type MatchingView = "received" | "sent";
 
 const filters = [
   { label: "전체", status: null },
@@ -64,7 +67,7 @@ function getStatusClass(status: string) {
   }
 }
 
-function MatchingRow({ matching }: { matching: ReceivedMatching }) {
+function MatchingRow({ matching }: { matching: Matching }) {
   return (
     <article className="grid min-h-[92px] grid-cols-[90px_220px_230px_130px_110px_112px] border-b border-[#EEF1F1] bg-white text-[14px] text-[#222831] last:border-b-0">
       <div className="flex items-center px-4 font-bold">
@@ -95,30 +98,43 @@ function MatchingRow({ matching }: { matching: ReceivedMatching }) {
 }
 
 export function MyMatchings() {
-  const [matchings, setMatchings] = useState<ReceivedMatching[]>([]);
+  const [selectedView, setSelectedView] =
+    useState<MatchingView>("received");
+  const [receivedMatchings, setReceivedMatchings] = useState<Matching[]>([]);
+  const [sentMatchings, setSentMatchings] = useState<Matching[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [receivedLoading, setReceivedLoading] = useState(true);
+  const [sentLoading, setSentLoading] = useState(true);
+  const [receivedError, setReceivedError] = useState("");
+  const [sentError, setSentError] = useState("");
 
   useEffect(() => {
     let active = true;
 
     async function loadMatchings() {
-      try {
-        const receivedMatchings = await fetchReceivedMatchings();
+      const [receivedResult, sentResult] = await Promise.allSettled([
+        fetchReceivedMatchings(),
+        fetchSentMatchings(),
+      ]);
 
-        if (active) {
-          setMatchings(receivedMatchings);
-        }
-      } catch {
-        if (active) {
-          setError("받은 매칭 목록을 불러오지 못했습니다.");
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
+      if (!active) {
+        return;
       }
+
+      if (receivedResult.status === "fulfilled") {
+        setReceivedMatchings(receivedResult.value);
+      } else {
+        setReceivedError("받은 매칭 목록을 불러오지 못했습니다.");
+      }
+
+      if (sentResult.status === "fulfilled") {
+        setSentMatchings(sentResult.value);
+      } else {
+        setSentError("보낸 매칭 목록을 불러오지 못했습니다.");
+      }
+
+      setReceivedLoading(false);
+      setSentLoading(false);
     }
 
     void loadMatchings();
@@ -127,6 +143,12 @@ export function MyMatchings() {
       active = false;
     };
   }, []);
+
+  const matchings =
+    selectedView === "received" ? receivedMatchings : sentMatchings;
+  const loading =
+    selectedView === "received" ? receivedLoading : sentLoading;
+  const error = selectedView === "received" ? receivedError : sentError;
 
   const filteredMatchings = useMemo(
     () =>
@@ -145,7 +167,7 @@ export function MyMatchings() {
 
   const matchingStats = [
     {
-      label: "받은 요청",
+      label: selectedView === "received" ? "받은 요청" : "보낸 요청",
       value: matchings.length,
       valueClass: "text-[#00ADB5]",
     },
@@ -168,12 +190,40 @@ export function MyMatchings() {
           MOMENTLIT MATCHING
         </p>
         <h2 className="text-[42px] font-bold text-[#222831]">
-          받은 매칭 요청
+          {selectedView === "received" ? "받은 매칭 요청" : "보낸 매칭 요청"}
         </h2>
         <p className="w-[760px] text-[18px] font-medium text-[#5E687E]">
-          내 공간으로 들어온 매칭 요청의 일정, 금액, 진행 상태를 확인할 수
-          있어요.
+          {selectedView === "received"
+            ? "내 공간으로 들어온 매칭 요청의 일정, 금액, 진행 상태를 확인할 수 있어요."
+            : "내가 보낸 매칭 요청의 일정, 금액, 진행 상태를 확인할 수 있어요."}
         </p>
+      </div>
+
+      <div className="flex w-fit rounded-full bg-white p-1.5">
+        {[
+          { label: "받은 요청", value: "received" },
+          { label: "보낸 요청", value: "sent" },
+        ].map(({ label, value }) => {
+          const active = selectedView === value;
+
+          return (
+            <button
+              className={`rounded-full px-6 py-3 text-[15px] font-bold ${
+                active
+                  ? "bg-[#00ADB5] text-white"
+                  : "text-[#5E687E]"
+              }`}
+              key={value}
+              onClick={() => {
+                setSelectedView(value as MatchingView);
+                setSelectedStatus(null);
+              }}
+              type="button"
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex gap-4">
@@ -194,7 +244,9 @@ export function MyMatchings() {
         <div className="flex items-center justify-between">
           <div className="flex w-[500px] flex-col gap-1.5">
             <h3 className="text-[26px] font-bold text-[#222831]">
-              받은 요청 목록
+              {selectedView === "received"
+                ? "받은 요청 목록"
+                : "보낸 요청 목록"}
             </h3>
             <p className="text-[15px] font-medium text-[#5E687E]">
               총 {matchings.length}개의 요청 중 검토 대기 {requestedCount}개가
@@ -251,7 +303,7 @@ export function MyMatchings() {
             </div>
             {filteredMatchings.map((matching) => (
               <MatchingRow
-                key={matching.matching_id}
+                key={`${matching.matching_id}-${matching.created_at}-${matching.address}`}
                 matching={matching}
               />
             ))}

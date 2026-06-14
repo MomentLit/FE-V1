@@ -3,7 +3,7 @@ import { getAccessToken } from "@/lib/current-user";
 
 export type MatchingStatus = "APPROVED" | "REJECTED" | "REQUESTED" | string;
 
-export type ReceivedMatching = {
+export type Matching = {
   matching_id: number;
   address: string;
   start_time: string;
@@ -13,16 +13,22 @@ export type ReceivedMatching = {
   created_at: string;
 };
 
-type ReceivedMatchingsResponse = {
+type MatchingsResponse = {
   message: string;
   data: {
-    matchings: ReceivedMatching[];
+    matchings: Matching[];
   };
 };
 
-const inFlightPromises = new Map<string, Promise<ReceivedMatching[]>>();
+export type ReceivedMatching = Matching;
 
-export async function fetchReceivedMatchings() {
+const receivedInFlightPromises = new Map<string, Promise<Matching[]>>();
+const sentInFlightPromises = new Map<string, Promise<Matching[]>>();
+
+async function fetchMatchings(
+  endpoint: string,
+  inFlightPromises: Map<string, Promise<Matching[]>>,
+) {
   const accessToken = getAccessToken();
 
   if (!accessToken) {
@@ -36,7 +42,7 @@ export async function fetchReceivedMatchings() {
   }
 
   const requestPromise = axios
-    .get<ReceivedMatchingsResponse>("/api/matchings/received", {
+    .get<MatchingsResponse>(endpoint, {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${accessToken}`,
@@ -58,4 +64,12 @@ export async function fetchReceivedMatchings() {
       inFlightPromises.delete(accessToken);
     }
   }
+}
+
+export async function fetchReceivedMatchings() {
+  return fetchMatchings("/api/matchings/received", receivedInFlightPromises);
+}
+
+export async function fetchSentMatchings() {
+  return fetchMatchings("/api/matchings/me", sentInFlightPromises);
 }
