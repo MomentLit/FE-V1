@@ -27,6 +27,7 @@ function CalendarCell({
           ? "bg-[#00ADB5] text-white"
           : "bg-white text-[#222831] hover:bg-[#E8F6F7]"
       }`}
+      aria-pressed={isSelected}
       onClick={onClick}
       type="button"
     >
