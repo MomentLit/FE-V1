@@ -20,7 +20,7 @@ export type UpdateCurrentUserInput = {
 const CURRENT_USER_KEY = "momentlit.currentUser";
 export const ACCESS_TOKEN_KEY = "accessToken";
 export const LEGACY_ACCESS_TOKEN_KEY = "access_token";
-let inFlightPromise: Promise<CurrentUser> | null = null;
+const inFlightPromises = new Map<string, Promise<CurrentUser>>();
 
 export function getAccessToken() {
   if (typeof window === "undefined") {
@@ -35,17 +35,19 @@ export function getAccessToken() {
 }
 
 export async function fetchCurrentUser() {
-  if (inFlightPromise) {
-    return inFlightPromise;
-  }
-
   const accessToken = getAccessToken();
 
   if (!accessToken) {
     throw new Error("Access token is missing.");
   }
 
-  inFlightPromise = axios
+  const existingPromise = inFlightPromises.get(accessToken);
+
+  if (existingPromise) {
+    return existingPromise;
+  }
+
+  const requestPromise = axios
     .get<CurrentUserResponse>("/api/users/me", {
       headers: {
         Accept: "application/json",
@@ -62,10 +64,14 @@ export async function fetchCurrentUser() {
       return response.data.data;
     });
 
+  inFlightPromises.set(accessToken, requestPromise);
+
   try {
-    return await inFlightPromise;
+    return await requestPromise;
   } finally {
-    inFlightPromise = null;
+    if (inFlightPromises.get(accessToken) === requestPromise) {
+      inFlightPromises.delete(accessToken);
+    }
   }
 }
 

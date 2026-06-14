@@ -17,7 +17,6 @@ import {
   clearCachedCurrentUser,
   type CurrentUser,
   fetchCurrentUser,
-  getCachedCurrentUser,
   LEGACY_ACCESS_TOKEN_KEY,
 } from "@/lib/current-user";
 
@@ -119,16 +118,6 @@ export function MyPageShell({ children }: { children: ReactNode }) {
     let active = true;
 
     async function loadCurrentUser() {
-      const cachedUser = getCachedCurrentUser();
-
-      if (cachedUser) {
-        if (active) {
-          setCurrentUser(cachedUser);
-          setProfileLoading(false);
-        }
-        return;
-      }
-
       try {
         const user = await fetchCurrentUser();
 
@@ -137,6 +126,7 @@ export function MyPageShell({ children }: { children: ReactNode }) {
         }
       } catch {
         if (active) {
+          clearCachedCurrentUser();
           setProfileError("프로필 정보를 불러오지 못했습니다.");
         }
       } finally {
