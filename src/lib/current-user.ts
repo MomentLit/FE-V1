@@ -102,3 +102,9 @@ export function getCachedCurrentUser() {
     return null;
   }
 }
+
+export function clearCachedCurrentUser() {
+  if (typeof window !== "undefined") {
+    window.sessionStorage.removeItem(CURRENT_USER_KEY);
+  }
+}
