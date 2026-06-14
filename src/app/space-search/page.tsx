@@ -12,7 +12,7 @@ const API_BASE =
   process.env.NEXT_PUBLIC_SPACES_API_BASE ??
   "https://mo-cf9d6bcf89cc455c9db26605b8ccfcdb.ecs.ap-northeast-2.on.aws";
 
-const filterRegions = [
+const filterRegions: Array<[string, boolean]> = [
   ["성수", true],
   ["연남", false],
   ["한남", false],
@@ -26,14 +26,14 @@ const filterRegions = [
 
 const filterTypes = ["팝업", "전시", "쇼룸", "촬영", "클래스", "모임", "F&B"];
 
-const capacityOptions = [
+const capacityOptions: Array<[string, boolean]> = [
   ["20명 이하", false],
   ["20-50명", true],
   ["50-100명", false],
   ["100명 이상", false],
 ];
 
-const priceOptions = [
+const priceOptions: Array<[string, boolean]> = [
   ["30만원 이하", false],
   ["50만원 이하", true],
   ["100만원 이하", true],
@@ -88,6 +88,28 @@ async function getSpaces(name?: string, category?: string): Promise<Space[]> {
 
 function formatPrice(price: number) {
   return `${new Intl.NumberFormat("ko-KR").format(price)}원/시간`;
+}
+
+function buildSearchHref({
+  category,
+  name,
+}: {
+  category?: string;
+  name?: string;
+}) {
+  const params = new URLSearchParams();
+
+  if (name?.trim()) {
+    params.set("name", name.trim());
+  }
+
+  if (category?.trim()) {
+    params.set("category", category.trim());
+  }
+
+  const query = params.toString();
+
+  return query ? `/space-search?${query}` : "/space-search";
 }
 
 function SearchCard({ space }: { space: Space }) {
@@ -189,9 +211,11 @@ function FilterSection({
     <section className="flex flex-col gap-2.5">
       <div className="flex items-center justify-between">
         <h3 className="text-[16px] font-bold text-[#222831]">{title}</h3>
-        <button className="text-[12px] font-bold text-[#00ADB5]" type="button">
-          {linkLabel}
-        </button>
+        {linkLabel ? (
+          <button className="text-[12px] font-bold text-[#00ADB5]" type="button">
+            {linkLabel}
+          </button>
+        ) : null}
       </div>
       {children}
     </section>
@@ -199,15 +223,14 @@ function FilterSection({
 }
 
 type PageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     name?: string;
     category?: string;
-  };
+  }>;
 };
 
 export default async function SpaceSearchPage({ searchParams }: PageProps) {
-  const name = searchParams?.name ?? "";
-  const category = searchParams?.category ?? "";
+  const { name = "", category = "" } = (await searchParams) ?? {};
   const spaces = await getSpaces(name, category);
 
   return (
@@ -222,7 +245,11 @@ export default async function SpaceSearchPage({ searchParams }: PageProps) {
           <h1 className="text-[42px] font-bold leading-[1.4] text-[#222831]">
             공간 찾기
           </h1>
-          <form action="/space-search" method="get" className="flex items-center gap-3">
+          <form
+            action="/space-search"
+            method="get"
+            className="flex items-center gap-3"
+          >
             <div className="flex flex-1 items-center gap-2 rounded-[24px] border border-[#DDEEEF] bg-white px-[18px] py-4">
               <span className="grid h-4 w-4 rounded-[4px] bg-[#67728A]" />
               <input
@@ -270,7 +297,7 @@ export default async function SpaceSearchPage({ searchParams }: PageProps) {
                   {filterTypes.map((label) => (
                     <FilterPill
                       active={category === label}
-                      href={`/space-search?category=${encodeURIComponent(label)}`}
+                      href={buildSearchHref({ category: label, name })}
                       key={label}
                       label={label}
                     />
