@@ -111,33 +111,44 @@ export function MyMatchings() {
   useEffect(() => {
     let active = true;
 
-    async function loadMatchings() {
-      const [receivedResult, sentResult] = await Promise.allSettled([
-        fetchReceivedMatchings(),
-        fetchSentMatchings(),
-      ]);
+    async function loadReceivedMatchings() {
+      try {
+        const matchings = await fetchReceivedMatchings();
 
-      if (!active) {
-        return;
+        if (active) {
+          setReceivedMatchings(matchings);
+        }
+      } catch {
+        if (active) {
+          setReceivedError("받은 매칭 목록을 불러오지 못했습니다.");
+        }
+      } finally {
+        if (active) {
+          setReceivedLoading(false);
+        }
       }
-
-      if (receivedResult.status === "fulfilled") {
-        setReceivedMatchings(receivedResult.value);
-      } else {
-        setReceivedError("받은 매칭 목록을 불러오지 못했습니다.");
-      }
-
-      if (sentResult.status === "fulfilled") {
-        setSentMatchings(sentResult.value);
-      } else {
-        setSentError("보낸 매칭 목록을 불러오지 못했습니다.");
-      }
-
-      setReceivedLoading(false);
-      setSentLoading(false);
     }
 
-    void loadMatchings();
+    async function loadSentMatchings() {
+      try {
+        const matchings = await fetchSentMatchings();
+
+        if (active) {
+          setSentMatchings(matchings);
+        }
+      } catch {
+        if (active) {
+          setSentError("보낸 매칭 목록을 불러오지 못했습니다.");
+        }
+      } finally {
+        if (active) {
+          setSentLoading(false);
+        }
+      }
+    }
+
+    void loadReceivedMatchings();
+    void loadSentMatchings();
 
     return () => {
       active = false;
