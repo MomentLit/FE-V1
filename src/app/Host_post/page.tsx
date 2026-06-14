@@ -19,24 +19,60 @@ function getCalendar(year: number, month: number) {
   const leadingEmptyCells = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const cells = [
-    ...Array.from({ length: leadingEmptyCells }, () => ""),
-    ...Array.from({ length: daysInMonth }, (_, index) => String(index + 1)),
-  ];
+const heroSizeClasses = {
+  side: "h-[320px] w-[190px] max-[1180px]:hidden",
+  mid: "h-[388px] w-[262px]",
+  main: "h-[476px] w-[456px] rounded-[24px]",
+  "mid dark": "h-[388px] w-[262px] bg-[#444] bg-blend-multiply",
+} as const;
 
-  while (cells.length % 7 !== 0) {
-    cells.push("");
-  }
+const cardPatternClasses =
+  "bg-[radial-gradient(circle_at_1px_1px,rgb(149_158_164_/_65%)_1px,transparent_1px),linear-gradient(135deg,rgb(255_255_255_/_72%)_0_25%,transparent_25%_50%,rgb(255_255_255_/_72%)_50%_75%,transparent_75%)] [background-position:0_0,0_0] [background-size:10px_10px,18px_18px]";
 
-  const weeks: string[][] = [];
-  for (let index = 0; index < cells.length; index += 7) {
-    weeks.push(cells.slice(index, index + 7));
-  }
+function HostHero() {
+  return (
+    <section
+      className="relative h-[572px] overflow-hidden bg-white"
+      id="top"
+    >
+      <div className="absolute inset-x-0 top-5 h-[476px]">
+        <div className="flex h-full w-full items-center justify-center gap-5">
+          {heroImages.map((card) => (
+            <article
+              aria-label={card.title}
+              className={`relative shrink-0 overflow-hidden rounded-[22px] bg-cover bg-center shadow-[0_22px_50px_rgb(15_29_36_/_12%)] ${heroSizeClasses[card.size as keyof typeof heroSizeClasses]}`}
+              key={card.title}
+            >
+              <Image
+                src={card.image}
+                alt={card.title}
+                fill
+                priority={card.size === "main"}
+                loading={card.size === "main" ? "eager" : "lazy"}
+                sizes={
+                  card.size === "main"
+                    ? "456px"
+                    : card.size === "mid" || card.size === "mid dark"
+                      ? "262px"
+                      : "190px"
+                }
+                className="object-cover"
+              />
+            </article>
+          ))}
+        </div>
+      </div>
 
-  return {
-    monthLabel: `${year}년 ${month + 1}월`,
-    weeks,
-  };
+      <div className="absolute left-1/2 top-[190px] z-10 w-[520px] -translate-x-1/2 text-center text-white drop-shadow-[0_10px_28px_rgb(15_29_36_/_35%)]">
+        <p className="mb-3 text-[13px] font-semibold uppercase tracking-normal">
+          MomentLit Host
+        </p>
+        <h1 className="text-[38px] font-semibold leading-[1.18] tracking-normal">
+          당신의 공간을 취향이 머무는 순간으로 등록하세요
+        </h1>
+      </div>
+    </section>
+  );
 }
 
 function CalendarDay({
@@ -69,15 +105,21 @@ function CalendarDay({
 
 function Tag({ children, tone = "muted" }: { children: string; tone?: "muted" | "accent" }) {
   return (
-    <span
-      className={`rounded-full px-4 py-2 text-[14px] font-semibold ${
-        tone === "accent"
-          ? "bg-[#E8F6F7] text-[#00ADB5]"
-          : "bg-[#F0F3F6] text-[#5E687E]"
-      }`}
-    >
-      {children}
-    </span>
+    <article className="group w-full">
+      <div
+        className={`relative aspect-[160/205] overflow-hidden rounded-[6px] border border-[#C4CCD1] bg-[#EEF1F3] ${cardPatternClasses}`}
+      >
+        <span className="absolute right-2 top-2 rounded-full bg-white px-2 py-1 text-[10px] font-semibold text-[#10B7C5]">
+          HOST
+        </span>
+      </div>
+      <div className="mt-3 min-h-[54px] text-[12px] leading-[1.45] text-[#6D7880]">
+        <h3 className="mb-1 truncate text-[13px] font-medium text-[#29333B]">
+          {title}
+        </h3>
+        <p>{meta}</p>
+      </div>
+    </article>
   );
 }
 
@@ -114,53 +156,51 @@ export default function HostPostPage() {
   return (
     <div className="min-h-screen bg-[#f8fbfb] text-[#222831]">
       <Header />
+      <main>
+        <HostHero />
 
-      <main className="mx-auto flex w-full max-w-[1120px] flex-col gap-11 px-6 pb-16 pt-10">
-        <section className="grid gap-8 lg:grid-cols-[700px_380px] lg:items-start">
-          <div className="flex flex-col gap-5">
-            <div className="rounded-[28px] border border-[#D0D3DB] bg-white p-5">
-              <div className="flex aspect-[700/620] w-full flex-col justify-between rounded-[24px] bg-[#F8FBFB] p-6">
-                <div className="flex items-start justify-between gap-6">
-                  <div className="flex flex-col gap-3">
-                    <div className="text-[14px] font-bold tracking-[0.02em] text-[#00ADB5]">HOST SPACE</div>
-                    <h1 className="max-w-[640px] text-[34px] font-bold leading-[1.18] tracking-tight text-[#222831]">
-                      성수 브랜드 팝업 전용 쇼룸
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Tag tone="accent">서울 성수동</Tag>
-                      <Tag>최대 120명</Tag>
-                      <Tag>브랜드 팝업 · 전시 · 촬영</Tag>
-                    </div>
-                  </div>
-                  <span className="rounded-full bg-[#E8F6F7] px-4 py-2 text-[12px] font-semibold text-[#00ADB5]">
-                    사진 자리
-                  </span>
-                </div>
-
-                <div className="rounded-[28px] border border-dashed border-[#D0D3DB] bg-white p-4">
-                  <div className="aspect-[640/395] rounded-[24px] bg-[linear-gradient(135deg,#EAF7F8_0%,#F8FBFB_100%)]" />
-                  <div className="mt-4 grid grid-cols-4 gap-3">
-                    {["사진 1", "사진 2", "사진 3", "사진 4"].map((label) => (
-                      <div
-                        className="grid aspect-[176/118] place-items-center rounded-[18px] border border-dashed border-[#C9D2D7] bg-white text-[13px] font-medium text-[#67728A]"
-                        key={label}
-                      >
-                        {label}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-9 px-12 pb-[140px]">
+          <Section
+            actionLabel="도움말 보기"
+            id="host-flow"
+            title="호스트 등록 흐름"
+            subtitle="공간을 등록하고 검수 요청까지 이어지는 핵심 단계를 확인하세요."
+          >
+            <div className="grid grid-cols-4 gap-6 max-[1180px]:grid-cols-3">
+              {postSteps.map(([title, desc, index]) => (
+                <StepCard
+                  desc={desc}
+                  index={index}
+                  key={title}
+                  title={title}
+                />
+              ))}
             </div>
+          </Section>
 
-            <div className="flex flex-col gap-4">
-              <div className="rounded-[24px] border border-[#D0D3DB] bg-white px-5 py-5">
-                <p className="text-[15px] font-semibold text-[#222831]">공간 소개 미리보기</p>
-                <p className="mt-3 text-[15px] leading-7 text-[#67728A]">
-                  브랜드 런칭 행사, 시즌 팝업, 전시형 쇼케이스까지 유연하게 운영할 수 있는
-                  성수 중심 공간입니다.
-                </p>
-              </div>
+          <Section
+            actionLabel="도움말 보기"
+            id="host-preview"
+            title="등록 정보 미리보기"
+            subtitle="게스트에게 보여질 주요 정보를 같은 화면 비율로 정리했어요."
+          >
+            <div className="grid grid-cols-3 gap-6">
+              {hostFields.map(([label, value]) => (
+                <FieldCard key={label} label={label} value={value} />
+              ))}
+            </div>
+          </Section>
+
+          <Section
+            actionLabel="도움말 보기"
+            id="space-intro"
+            title="공간 소개 구성"
+            subtitle="사진, 안내 문구, 예약 조건까지 한 번에 점검할 수 있어요."
+          >
+            <div className="grid grid-cols-6 gap-6 max-[1180px]:grid-cols-3">
+              {previewCards.map(([title, meta]) => (
+                <PreviewCard key={title} meta={meta} title={title} />
+              ))}
             </div>
           </div>
 

@@ -63,6 +63,16 @@ const analysisCards = [
   ["새로운 취향", "AI 추천 업데이트"],
 ];
 
+const heroSizeClasses = {
+  side: "h-[320px] w-[190px] max-[1180px]:hidden",
+  mid: "h-[388px] w-[262px]",
+  main: "h-[476px] w-[456px] rounded-[24px]",
+  "mid dark": "h-[388px] w-[262px] bg-[#444] bg-blend-multiply",
+} as const;
+
+const cardPatternClasses =
+  "bg-[radial-gradient(circle_at_1px_1px,rgb(149_158_164_/_65%)_1px,transparent_1px),linear-gradient(135deg,rgb(255_255_255_/_72%)_0_25%,transparent_25%_50%,rgb(255_255_255_/_72%)_50%_75%,transparent_75%)] [background-position:0_0,0_0] [background-size:10px_10px,18px_18px]";
+
 type Space = {
   space_id: number;
   name: string;
@@ -120,7 +130,7 @@ function Hero() {
           {heroCards.map((card) => (
             <article
               aria-label={card.title}
-              className={`hero-card ${card.size}`}
+              className={`relative shrink-0 overflow-hidden rounded-[22px] bg-cover bg-center shadow-[0_22px_50px_rgb(15_29_36_/_12%)] ${heroSizeClasses[card.size as keyof typeof heroSizeClasses]}`}
               key={card.title}
             >
               <Image
@@ -165,7 +175,9 @@ function Card({
 }) {
   return (
     <article className="group w-full">
-      <div className="relative aspect-[160/205] overflow-hidden rounded-[6px] border border-[#C4CCD1] bg-[#EEF1F3] card-pattern">
+      <div
+        className={`relative aspect-[160/205] overflow-hidden rounded-[6px] border border-[#C4CCD1] bg-[#EEF1F3] ${cardPatternClasses}`}
+      >
         {image ? (
           <Image
             src={image}
@@ -216,7 +228,7 @@ export default async function Home() {
                 공간 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
               </p>
             ) : spaces.length > 0 ? (
-              <div className="grid grid-cols-6 gap-6">
+              <div className="grid grid-cols-6 gap-6 max-[1180px]:grid-cols-3">
                 {spaces.map((space, index) => (
                   <Card
                     accent={index === 2}
@@ -239,7 +251,7 @@ export default async function Home() {
             title="요즘 취향 탐구"
             subtitle="MomentLit이 발견한 새로운 공간과 취향의 흐름이에요."
           >
-            <div className="grid grid-cols-6 gap-6">
+            <div className="grid grid-cols-6 gap-6 max-[1180px]:grid-cols-3">
               {tasteCards.map(([title, desc, rating]) => (
                 <Card
                   key={title}
@@ -255,7 +267,7 @@ export default async function Home() {
             title="당신의 취향 분석"
             subtitle="저장한 순간과 검색 기록을 바탕으로 어울리는 공간을 추천해드려요."
           >
-            <div className="grid grid-cols-6 gap-x-6 gap-y-8">
+            <div className="grid grid-cols-6 gap-x-6 gap-y-8 max-[1180px]:grid-cols-3">
               {analysisCards.map(([title, meta], index) => (
                 <Card
                   accent={index === 8}
