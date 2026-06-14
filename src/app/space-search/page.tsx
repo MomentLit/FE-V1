@@ -223,14 +223,14 @@ function FilterSection({
 }
 
 type PageProps = {
-  searchParams?: Promise<{
+  searchParams: Promise<{
     name?: string;
     category?: string;
   }>;
 };
 
 export default async function SpaceSearchPage({ searchParams }: PageProps) {
-  const { name = "", category = "" } = (await searchParams) ?? {};
+  const { name = "", category = "" } = await searchParams;
   const spaces = await getSpaces(name, category);
 
   return (

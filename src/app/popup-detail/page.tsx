@@ -248,13 +248,13 @@ function ImageGallery({ images }: { images: string[] }) {
 }
 
 type PageProps = {
-  searchParams?: Promise<{
+  searchParams: Promise<{
     spaceId?: string;
   }>;
 };
 
 export default async function PopupDetailPage({ searchParams }: PageProps) {
-  const { spaceId } = (await searchParams) ?? {};
+  const { spaceId } = await searchParams;
 
   if (!spaceId) {
     return (
