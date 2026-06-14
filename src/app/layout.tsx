@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "./tailwind.css";
 
 export const metadata: Metadata = {
   title: "MomentLit",
@@ -14,9 +14,11 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className="h-full antialiased"
+      className="h-full bg-white antialiased"
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="m-0 flex min-h-full min-w-0 flex-col bg-white [font-family:Arial,Helvetica,sans-serif] text-[#172129] min-[1181px]:min-w-[1180px]">
+        {children}
+      </body>
     </html>
   );
 }

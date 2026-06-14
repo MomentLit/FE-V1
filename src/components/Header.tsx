@@ -50,7 +50,7 @@ export function Header() {
 
   return (
     <header className="bg-white">
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-7">
+      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 min-[1181px]:px-7">
         <div className="flex w-[163.5px] items-center">
           <Image
             src="/Logo.png"

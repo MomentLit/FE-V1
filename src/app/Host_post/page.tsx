@@ -61,6 +61,16 @@ const previewCards = [
   ["예약 체크", "승인 전 마지막 확인 항목"],
 ];
 
+const heroSizeClasses = {
+  side: "h-[320px] w-[190px] max-[1180px]:hidden",
+  mid: "h-[388px] w-[262px]",
+  main: "h-[476px] w-[456px] rounded-[24px]",
+  "mid dark": "h-[388px] w-[262px] bg-[#444] bg-blend-multiply",
+} as const;
+
+const cardPatternClasses =
+  "bg-[radial-gradient(circle_at_1px_1px,rgb(149_158_164_/_65%)_1px,transparent_1px),linear-gradient(135deg,rgb(255_255_255_/_72%)_0_25%,transparent_25%_50%,rgb(255_255_255_/_72%)_50%_75%,transparent_75%)] [background-position:0_0,0_0] [background-size:10px_10px,18px_18px]";
+
 function HostHero() {
   return (
     <section
@@ -72,7 +82,7 @@ function HostHero() {
           {heroImages.map((card) => (
             <article
               aria-label={card.title}
-              className={`hero-card ${card.size}`}
+              className={`relative shrink-0 overflow-hidden rounded-[22px] bg-cover bg-center shadow-[0_22px_50px_rgb(15_29_36_/_12%)] ${heroSizeClasses[card.size as keyof typeof heroSizeClasses]}`}
               key={card.title}
             >
               <Image
@@ -139,7 +149,9 @@ function FieldCard({ label, value }: { label: string; value: string }) {
 function PreviewCard({ meta, title }: { meta: string; title: string }) {
   return (
     <article className="group w-full">
-      <div className="relative aspect-[160/205] overflow-hidden rounded-[6px] border border-[#C4CCD1] bg-[#EEF1F3] card-pattern">
+      <div
+        className={`relative aspect-[160/205] overflow-hidden rounded-[6px] border border-[#C4CCD1] bg-[#EEF1F3] ${cardPatternClasses}`}
+      >
         <span className="absolute right-2 top-2 rounded-full bg-white px-2 py-1 text-[10px] font-semibold text-[#10B7C5]">
           HOST
         </span>
@@ -168,7 +180,7 @@ export default function HostPost() {
             title="호스트 등록 흐름"
             subtitle="공간을 등록하고 검수 요청까지 이어지는 핵심 단계를 확인하세요."
           >
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-4 gap-6 max-[1180px]:grid-cols-3">
               {postSteps.map(([title, desc, index]) => (
                 <StepCard
                   desc={desc}
@@ -199,7 +211,7 @@ export default function HostPost() {
             title="공간 소개 구성"
             subtitle="사진, 안내 문구, 예약 조건까지 한 번에 점검할 수 있어요."
           >
-            <div className="grid grid-cols-6 gap-6">
+            <div className="grid grid-cols-6 gap-6 max-[1180px]:grid-cols-3">
               {previewCards.map(([title, meta]) => (
                 <PreviewCard key={title} meta={meta} title={title} />
               ))}
