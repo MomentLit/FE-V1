@@ -1,81 +1,37 @@
+"use client";
+
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { useState } from "react";
 import { SpaceCreateForm } from "./SpaceCreateForm";
 
 const weekdayLabels = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-const calendarRows = [
-  [
-    { value: "", tone: "empty" },
-    { value: "", tone: "empty" },
-    { value: "", tone: "empty" },
-    { value: "", tone: "empty" },
-    { value: "1", tone: "muted" },
-    { value: "2", tone: "accent" },
-    { value: "3", tone: "muted" },
-  ],
-  [
-    { value: "4", tone: "muted" },
-    { value: "5", tone: "warning" },
-    { value: "6", tone: "muted" },
-    { value: "7", tone: "selected" },
-    { value: "8", tone: "muted" },
-    { value: "9", tone: "accent" },
-    { value: "10", tone: "muted" },
-  ],
-  [
-    { value: "11", tone: "disabled" },
-    { value: "12", tone: "accent" },
-    { value: "13", tone: "warning" },
-    { value: "14", tone: "muted" },
-    { value: "15", tone: "muted" },
-    { value: "16", tone: "muted" },
-    { value: "17", tone: "muted" },
-  ],
-  [
-    { value: "18", tone: "muted" },
-    { value: "19", tone: "muted" },
-    { value: "20", tone: "muted" },
-    { value: "21", tone: "accent" },
-    { value: "22", tone: "muted" },
-    { value: "23", tone: "muted" },
-    { value: "24", tone: "disabled" },
-  ],
-  [
-    { value: "25", tone: "muted" },
-    { value: "26", tone: "muted" },
-    { value: "27", tone: "muted" },
-    { value: "28", tone: "muted" },
-    { value: "29", tone: "muted" },
-    { value: "30", tone: "muted" },
-    { value: "31", tone: "muted" },
-  ],
-];
-
 function CalendarCell({
   value,
-  tone,
+  isSelected,
+  onClick,
 }: {
   value: string;
-  tone: "empty" | "muted" | "accent" | "warning" | "selected" | "disabled";
+  isSelected: boolean;
+  onClick?: () => void;
 }) {
   if (!value) {
     return <div className="h-11 w-12" />;
   }
 
-  const styles: Record<typeof tone, string> = {
-    empty: "bg-transparent text-transparent",
-    muted: "bg-white text-[#222831]",
-    accent: "bg-[#E8F6F7] text-[#008992]",
-    warning: "bg-[#FFF4E8] text-[#C97A1A]",
-    selected: "bg-[#00ADB5] text-white",
-    disabled: "bg-white text-[#BAC2D0]",
-  };
-
   return (
-    <div className={`grid h-11 w-12 place-items-center rounded-[14px] text-[14px] font-semibold ${styles[tone]}`}>
+    <button
+      className={`grid h-11 w-12 place-items-center rounded-[14px] text-[14px] font-semibold transition ${
+        isSelected
+          ? "bg-[#00ADB5] text-white"
+          : "bg-white text-[#222831] hover:bg-[#E8F6F7]"
+      }`}
+      onClick={onClick}
+      type="button"
+    >
       {value}
-    </div>
+    </button>
   );
 }
 
@@ -87,7 +43,80 @@ function PhotoThumb({ label }: { label: string }) {
   );
 }
 
+function buildCalendarGrid(
+  year: number,
+  month: number,
+  selectedDates: string[],
+) {
+  const firstDay = new Date(year, month, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: Array<{ value: string; dateKey: string | null }> = [];
+
+  for (let index = 0; index < startOffset; index += 1) {
+    cells.push({ dateKey: null, value: "" });
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const monthLabel = String(month + 1).padStart(2, "0");
+    const dayLabel = String(day).padStart(2, "0");
+    const dateKey = `${year}-${monthLabel}-${dayLabel}`;
+
+    cells.push({ dateKey, value: String(day) });
+  }
+
+  while (cells.length % 7 !== 0) {
+    cells.push({ dateKey: null, value: "" });
+  }
+
+  return cells.map((cell) => ({
+    ...cell,
+    isSelected: cell.dateKey ? selectedDates.includes(cell.dateKey) : false,
+  }));
+}
+
 export default function HostPostPage() {
+  const today = new Date();
+  const [displayedYear, setDisplayedYear] = useState(today.getFullYear());
+  const [displayedMonth, setDisplayedMonth] = useState(today.getMonth());
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+
+  const calendarCells = buildCalendarGrid(
+    displayedYear,
+    displayedMonth,
+    selectedDates,
+  );
+
+  const handlePrevMonth = () => {
+    setDisplayedMonth((currentMonth) => {
+      if (currentMonth === 0) {
+        setDisplayedYear((currentYear) => currentYear - 1);
+        return 11;
+      }
+
+      return currentMonth - 1;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setDisplayedMonth((currentMonth) => {
+      if (currentMonth === 11) {
+        setDisplayedYear((currentYear) => currentYear + 1);
+        return 0;
+      }
+
+      return currentMonth + 1;
+    });
+  };
+
+  const handleDateClick = (dateKey: string) => {
+    setSelectedDates((currentSelectedDates) =>
+      currentSelectedDates.includes(dateKey)
+        ? currentSelectedDates.filter((value) => value !== dateKey)
+        : [...currentSelectedDates, dateKey],
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FBFB] text-[#222831]">
       <Header />
@@ -130,11 +159,14 @@ export default function HostPostPage() {
 
             <div className="mt-4 rounded-[22px] bg-[#F8FBFB] p-5">
               <div className="flex items-center justify-between">
-                <h3 className="text-[20px] font-bold text-[#222831]">2026년 5월</h3>
+                <h3 className="text-[20px] font-bold text-[#222831]">
+                  {`${displayedYear}년 ${displayedMonth + 1}월`}
+                </h3>
                 <div className="flex gap-2">
                   <button
                     className="grid h-9 w-9 place-items-center rounded-full bg-white text-[16px] font-bold text-[#67728A]"
                     aria-label="이전 달"
+                    onClick={handlePrevMonth}
                     type="button"
                   >
                     &lt;
@@ -142,6 +174,7 @@ export default function HostPostPage() {
                   <button
                     className="grid h-9 w-9 place-items-center rounded-full bg-white text-[16px] font-bold text-[#67728A]"
                     aria-label="다음 달"
+                    onClick={handleNextMonth}
                     type="button"
                   >
                     &gt;
@@ -158,8 +191,13 @@ export default function HostPostPage() {
               </div>
 
               <div className="mt-2 grid grid-cols-7 gap-1.5">
-                {calendarRows.flat().map((item, index) => (
-                  <CalendarCell key={`${item.value || "empty"}-${index}`} tone={item.tone} value={item.value} />
+                {calendarCells.map((item, index) => (
+                  <CalendarCell
+                    key={`${item.dateKey || "empty"}-${index}`}
+                    isSelected={item.isSelected}
+                    onClick={item.dateKey ? () => handleDateClick(item.dateKey) : undefined}
+                    value={item.value}
+                  />
                 ))}
               </div>
 

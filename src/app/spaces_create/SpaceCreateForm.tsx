@@ -75,6 +75,7 @@ function FieldControl({
           className={commonClassName}
           id={field.id}
           name={field.id}
+          required
           value={value}
           onChange={(event) => onChange(field.id as keyof FormState, event.target.value)}
         >
@@ -97,6 +98,7 @@ function FieldControl({
         name={field.id}
         onChange={(event) => onChange(field.id as keyof FormState, event.target.value)}
         placeholder={field.placeholder}
+        required
         value={value}
       />
     </label>
@@ -134,6 +136,7 @@ export function SpaceCreateForm() {
             name="title"
             onChange={(event) => handleFieldChange("title", event.target.value)}
             placeholder="예) 성수 브랜드 팝업 전용 쇼룸"
+            required
             value={form.title}
           />
         </label>
@@ -149,6 +152,7 @@ export function SpaceCreateForm() {
             name="description"
             onChange={(event) => handleFieldChange("description", event.target.value)}
             placeholder="공간의 특징과 활용 방식을 입력해 주세요."
+            required
             value={form.description}
           />
         </label>
