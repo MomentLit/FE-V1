@@ -20,20 +20,22 @@ type ReceivedMatchingsResponse = {
   };
 };
 
-let inFlightPromise: Promise<ReceivedMatching[]> | null = null;
+const inFlightPromises = new Map<string, Promise<ReceivedMatching[]>>();
 
 export async function fetchReceivedMatchings() {
-  if (inFlightPromise) {
-    return inFlightPromise;
-  }
-
   const accessToken = getAccessToken();
 
   if (!accessToken) {
     throw new Error("Access token is missing.");
   }
 
-  inFlightPromise = axios
+  const existingPromise = inFlightPromises.get(accessToken);
+
+  if (existingPromise) {
+    return existingPromise;
+  }
+
+  const requestPromise = axios
     .get<ReceivedMatchingsResponse>("/api/matchings/received", {
       headers: {
         Accept: "application/json",
@@ -47,9 +49,13 @@ export async function fetchReceivedMatchings() {
         : [],
     );
 
+  inFlightPromises.set(accessToken, requestPromise);
+
   try {
-    return await inFlightPromise;
+    return await requestPromise;
   } finally {
-    inFlightPromise = null;
+    if (inFlightPromises.get(accessToken) === requestPromise) {
+      inFlightPromises.delete(accessToken);
+    }
   }
 }
