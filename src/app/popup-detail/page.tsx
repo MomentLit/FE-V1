@@ -239,7 +239,11 @@ function ImageGallery({ images }: { images: string[] }) {
             className="relative h-[220px] overflow-hidden rounded-[24px] bg-[#EEF1F3]"
             key={image}
           >
-            <img alt="공간 이미지" className="h-full w-full object-cover" src={image} />
+            <img
+              alt="공간 이미지"
+              className="h-full w-full object-cover"
+              src={image}
+            />
           </div>
         ))}
       </div>

@@ -150,7 +150,9 @@ function SearchCard({ space }: { space: Space }) {
         </div>
 
         <p className="mt-3 min-h-[42px] text-[13px] font-medium leading-[1.5] text-[#67728A]">
-          {space.ai_summary ?? space.description ?? "공간 상세 정보를 확인해보세요."}
+          {space.ai_summary ??
+            space.description ??
+            "공간 상세 정보를 확인해보세요."}
         </p>
 
         <div className="mt-auto flex items-center justify-between gap-4 pt-3">
