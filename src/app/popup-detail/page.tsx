@@ -9,8 +9,7 @@ export const dynamic = "force-dynamic";
 
 const API_BASE =
   process.env.SPACES_API_BASE ??
-  process.env.NEXT_PUBLIC_SPACES_API_BASE ??
-  "https://mo-cf9d6bcf89cc455c9db26605b8ccfcdb.ecs.ap-northeast-2.on.aws";
+  process.env.NEXT_PUBLIC_SPACES_API_BASE;
 
 type SpaceDetail = {
   space_id: number;
@@ -30,6 +29,10 @@ type SpaceDetailResponse = {
 };
 
 async function getSpaceDetail(spaceId: string): Promise<SpaceDetail | null> {
+  if (!API_BASE) {
+    return null;
+  }
+
   const baseUrl = API_BASE.replace(/\/$/, "");
   const url = new URL(`/spaces/${spaceId}`, baseUrl);
 
