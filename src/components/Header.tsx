@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { getAccessToken } from "@/lib/current-user";
@@ -28,13 +28,21 @@ function ProfileIcon() {
 }
 
 export function Header() {
-  const [activeNav, setActiveNav] = useState("공간 찾기");
+  const pathname = usePathname();
   const [profileError, setProfileError] = useState("");
   const router = useRouter();
 
+  const activeNav =
+    pathname === "/"
+      ? "홈"
+      : pathname.startsWith("/space-search")
+        ? "공간 찾기"
+        : pathname.startsWith("/calendar")
+          ? "캘린더"
+          : "";
+
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setActiveNav("공간 찾기");
   }
 
   function handleProfileClick() {
@@ -65,20 +73,27 @@ export function Header() {
         <nav className="flex h-16 items-center gap-2 text-[18px] font-semibold leading-[1.3] text-[#67728A]">
           {navItems.map(([item]) => {
             const active = item === activeNav;
+            const targetHref =
+              item === "홈"
+                ? "/"
+                : item === "공간 찾기"
+                  ? "/space-search"
+                  : item === "캘린더"
+                    ? "/calendar"
+                    : "/#ai-match";
 
             return (
-              <button
+              <Link
                 className={`grid h-16 place-items-center rounded-full px-[18px] transition ${
                   active
                     ? "bg-[#00ADB5]/[0.07] text-[#00ADB5]"
                     : "hover:text-[#00ADB5]"
                 }`}
                 key={item}
-                onClick={() => setActiveNav(item)}
-                type="button"
+                href={targetHref}
               >
                 {item}
-              </button>
+              </Link>
             );
           })}
         </nav>
