@@ -62,18 +62,18 @@ async function getSpaces(name?: string, category?: string): Promise<Space[]> {
     return [];
   }
 
-  const baseUrl = API_BASE.replace(/\/$/, "");
-  const url = new URL("/spaces", baseUrl);
-
-  if (name?.trim()) {
-    url.searchParams.set("name", name.trim());
-  }
-
-  if (category?.trim()) {
-    url.searchParams.set("category", category.trim());
-  }
-
   try {
+    const baseUrl = API_BASE.replace(/\/$/, "");
+    const url = new URL("/spaces", baseUrl);
+
+    if (name?.trim()) {
+      url.searchParams.set("name", name.trim());
+    }
+
+    if (category?.trim()) {
+      url.searchParams.set("category", category.trim());
+    }
+
     const response = await axios.get<SpacesResponse>(url.toString(), {
       headers: {
         Accept: "application/json",

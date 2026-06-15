@@ -33,10 +33,10 @@ async function getSpaceDetail(spaceId: string): Promise<SpaceDetail | null> {
     return null;
   }
 
-  const baseUrl = API_BASE.replace(/\/$/, "");
-  const url = new URL(`/spaces/${spaceId}`, baseUrl);
-
   try {
+    const baseUrl = API_BASE.replace(/\/$/, "");
+    const url = new URL(`/spaces/${encodeURIComponent(spaceId)}`, baseUrl);
+
     const response = await axios.get<SpaceDetailResponse>(url.toString(), {
       headers: {
         Accept: "application/json",
