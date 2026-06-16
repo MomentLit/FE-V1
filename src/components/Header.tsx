@@ -35,7 +35,9 @@ export function Header() {
   const activeNav =
     pathname === "/"
       ? "홈"
-      : pathname.startsWith("/space-search")
+      : pathname.startsWith("/space-search") ||
+          pathname.startsWith("/popup-detail") ||
+          pathname.startsWith("/spaces/space_detail")
         ? "공간 찾기"
         : pathname.startsWith("/calendar")
           ? "캘린더"
@@ -43,6 +45,12 @@ export function Header() {
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const query = String(formData.get("name") ?? "").trim();
+
+    router.push(
+      query ? `/space-search?name=${encodeURIComponent(query)}` : "/space-search",
+    );
   }
 
   function handleProfileClick() {
@@ -158,7 +166,7 @@ export function Header() {
           <input
             aria-label="검색"
             className="h-8 w-[560px] bg-transparent text-[16px] font-medium text-[#67728A] outline-none placeholder:text-[#67728A]"
-            name="query"
+            name="name"
             placeholder="성수 팝업, 캐릭터 전시, 부산 로컬 마켓처럼 검색해보세요."
             type="search"
           />
