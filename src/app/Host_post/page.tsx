@@ -120,14 +120,14 @@ function CalendarDay({
   return (
     <div
       className={`grid h-10 w-10 place-items-center rounded-xl text-[14px] font-semibold ${
-        active
-          ? "bg-[#E8F6F7] text-[#00ADB5]"
-          : availability === "available"
-            ? "bg-[#E8F6F7] text-[#00ADB5]"
-            : availability === "blocked"
-              ? "bg-[#FCEEEE] text-[#B34848]"
-              : availability === "booked"
-                ? "bg-[#F0F3F6] text-[#99A1B1]"
+        availability === "blocked"
+          ? "bg-[#FCEEEE] text-[#B34848]"
+          : availability === "booked"
+            ? "bg-[#F0F3F6] text-[#99A1B1]"
+            : availability === "available"
+              ? `${active ? "ring-2 ring-[#8FD9DE]" : ""} bg-[#E8F6F7] text-[#00ADB5]`
+              : active
+                ? "bg-[#E8F6F7] text-[#00ADB5]"
                 : "bg-white text-[#222831]"
       }`}
     >
