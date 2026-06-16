@@ -27,6 +27,12 @@ export function getAccessToken() {
     return null;
   }
 
+  const sessionToken = window.sessionStorage.getItem(ACCESS_TOKEN_KEY);
+
+  if (sessionToken) {
+    return sessionToken;
+  }
+
   // Check the legacy key while existing sessions migrate to the canonical key.
   return (
     window.localStorage.getItem(ACCESS_TOKEN_KEY) ??

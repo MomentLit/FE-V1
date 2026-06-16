@@ -41,8 +41,6 @@ type SignUpResponse = {
   };
 };
 
-const REFRESH_TOKEN_KEY = "refreshToken";
-
 function BrandText() {
   return <span className="text-[18px] font-semibold tracking-[0.02em] text-[#3CAEDB]">MomentLit</span>;
 }
@@ -162,7 +160,6 @@ export function AuthShell({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   async function handleSignIn(event: FormEvent<HTMLFormElement>) {
@@ -200,9 +197,10 @@ export function AuthShell({
         throw new Error("로그인 응답이 올바르지 않습니다.");
       }
 
-      window.localStorage.setItem(ACCESS_TOKEN_KEY, auth.access_token);
-      window.localStorage.setItem(REFRESH_TOKEN_KEY, auth.refresh_token);
+      window.sessionStorage.setItem(ACCESS_TOKEN_KEY, auth.access_token);
+      window.localStorage.removeItem(ACCESS_TOKEN_KEY);
       window.localStorage.removeItem("access_token");
+      window.localStorage.removeItem("refreshToken");
 
       router.replace("/");
       router.refresh();
@@ -281,9 +279,10 @@ export function AuthShell({
       const auth = response.data?.data;
 
       if (auth?.access_token && auth?.refresh_token) {
-        window.localStorage.setItem(ACCESS_TOKEN_KEY, auth.access_token);
-        window.localStorage.setItem(REFRESH_TOKEN_KEY, auth.refresh_token);
+        window.sessionStorage.setItem(ACCESS_TOKEN_KEY, auth.access_token);
+        window.localStorage.removeItem(ACCESS_TOKEN_KEY);
         window.localStorage.removeItem("access_token");
+        window.localStorage.removeItem("refreshToken");
         router.replace("/");
         router.refresh();
         return;
@@ -366,17 +365,6 @@ export function AuthShell({
                 />
 
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2.5 text-[14px] text-[#7B8C8E]">
-                    <input
-                      checked={rememberMe}
-                      className="h-[18px] w-[18px] cursor-pointer rounded-[5px] border border-[#B8DADD] bg-[#F4FBFB] accent-[#00ADB5]"
-                      id="remember-me"
-                      name="rememberMe"
-                      onChange={(event) => setRememberMe(event.target.checked)}
-                      type="checkbox"
-                    />
-                    로그인 상태 유지
-                  </label>
                   <button className="text-[13px] font-medium text-[#008992]" type="button">
                     아이디/비밀번호 찾기
                   </button>

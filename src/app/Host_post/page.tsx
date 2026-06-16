@@ -178,17 +178,25 @@ function getScheduleSummary(schedules: ScheduleItem[]) {
   const availableDays = schedules.filter((item) =>
     item.time_blocks.some((block) => block.status === "AVAILABLE"),
   ).length;
+  const firstDate = schedules.reduce<string | null>((earliest, item) => {
+    if (!earliest || item.date < earliest) {
+      return item.date;
+    }
+
+    return earliest;
+  }, null);
 
   return {
     availableDays,
-    firstDate: schedules[0]?.date ?? null,
+    firstDate,
   };
 }
 
 export default function HostPostPage() {
   const today = new Date();
-  const [displayedYear, setDisplayedYear] = useState(today.getFullYear());
-  const [displayedMonth, setDisplayedMonth] = useState(today.getMonth());
+  const [displayedDate, setDisplayedDate] = useState(
+    () => new Date(today.getFullYear(), today.getMonth(), 1),
+  );
   const [space, setSpace] = useState<SpaceDetail | null>(null);
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
   const [popupCount, setPopupCount] = useState(0);
@@ -284,6 +292,8 @@ export default function HostPostPage() {
     };
   }, []);
 
+  const displayedYear = displayedDate.getFullYear();
+  const displayedMonth = displayedDate.getMonth();
   const { monthLabel, weeks } = getCalendar(displayedYear, displayedMonth);
   const isCurrentMonth =
     displayedYear === today.getFullYear() && displayedMonth === today.getMonth();
@@ -308,25 +318,11 @@ export default function HostPostPage() {
   ];
 
   function handlePrevMonth() {
-    setDisplayedMonth((currentMonth) => {
-      if (currentMonth === 0) {
-        setDisplayedYear((currentYear) => currentYear - 1);
-        return 11;
-      }
-
-      return currentMonth - 1;
-    });
+    setDisplayedDate((currentDate) => new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   }
 
   function handleNextMonth() {
-    setDisplayedMonth((currentMonth) => {
-      if (currentMonth === 11) {
-        setDisplayedYear((currentYear) => currentYear + 1);
-        return 0;
-      }
-
-      return currentMonth + 1;
-    });
+    setDisplayedDate((currentDate) => new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   }
 
   return (
@@ -337,28 +333,7 @@ export default function HostPostPage() {
         <section className="grid gap-8 lg:grid-cols-[700px_380px] lg:items-start">
           <div className="flex flex-col gap-5">
             <div className="rounded-[28px] border border-[#D0D3DB] bg-white p-5">
-              <div className="flex aspect-[700/620] w-full flex-col justify-between rounded-[24px] bg-[#F8FBFB] p-6">
-                <div className="flex items-start justify-between gap-6">
-                  <div className="flex flex-col gap-3">
-                    <div className="text-[14px] font-bold tracking-[0.02em] text-[#00ADB5]">
-                      HOST SPACE
-                    </div>
-                    <h1 className="max-w-[640px] text-[34px] font-bold leading-[1.18] tracking-tight text-[#222831]">
-                      {title}
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Tag tone="accent">
-                        {space?.address?.split(" ").slice(0, 2).join(" ") ?? "서울 성수동"}
-                      </Tag>
-                      <Tag>{space ? formatPrice(space.price_per_hour) : "문의 필요"}</Tag>
-                      <Tag>{space?.category ?? "브랜드 팝업 · 전시 · 촬영"}</Tag>
-                    </div>
-                  </div>
-                  <span className="rounded-full bg-[#E8F6F7] px-4 py-2 text-[12px] font-semibold text-[#00ADB5]">
-                    사진 자리
-                  </span>
-                </div>
-
+              <div className="flex aspect-[700/620] w-full flex-col gap-4 rounded-[24px] bg-[#F8FBFB] p-6">
                 <div className="rounded-[28px] border border-dashed border-[#D0D3DB] bg-white p-4">
                   <div
                     className="aspect-[640/395] rounded-[24px] bg-cover bg-center"
@@ -391,7 +366,23 @@ export default function HostPostPage() {
                           >
                             {label}
                           </div>
-                        ))}
+                      ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="text-[14px] font-bold tracking-[0.02em] text-[#00ADB5]">
+                    HOST SPACE
+                  </div>
+                  <h1 className="max-w-[640px] text-[34px] font-bold leading-[1.18] tracking-tight text-[#222831]">
+                    {title}
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Tag tone="accent">
+                      {space?.address?.split(" ").slice(0, 2).join(" ") ?? "서울 성수동"}
+                    </Tag>
+                    <Tag>{space ? formatPrice(space.price_per_hour) : "문의 필요"}</Tag>
+                    <Tag>{space?.category ?? "브랜드 팝업 · 전시 · 촬영"}</Tag>
                   </div>
                 </div>
               </div>
@@ -418,6 +409,7 @@ export default function HostPostPage() {
                 <div className="flex gap-2">
                   <button
                     className="grid h-9 w-9 place-items-center rounded-full bg-white text-[16px] font-bold text-[#67728a] shadow-[0_0_0_1px_rgba(199,208,214,0.8)]"
+                    aria-label="이전 달 보기"
                     onClick={handlePrevMonth}
                     type="button"
                   >
@@ -425,6 +417,7 @@ export default function HostPostPage() {
                   </button>
                   <button
                     className="grid h-9 w-9 place-items-center rounded-full bg-white text-[16px] font-bold text-[#67728a] shadow-[0_0_0_1px_rgba(199,208,214,0.8)]"
+                    aria-label="다음 달 보기"
                     onClick={handleNextMonth}
                     type="button"
                   >

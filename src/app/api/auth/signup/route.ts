@@ -1,4 +1,3 @@
-import axios from "axios";
 import { NextResponse } from "next/server";
 
 type SignUpBody = {
@@ -7,12 +6,7 @@ type SignUpBody = {
   password?: string;
 };
 
-function handleUpstreamError() {
-  return NextResponse.json(
-    { message: "회원가입 서버에 연결할 수 없습니다." },
-    { status: 502 },
-  );
-}
+const UPSTREAM_TIMEOUT_MS = 10_000;
 
 export async function POST(request: Request) {
   const baseUrl = process.env.SPACES_API_BASE;
@@ -55,6 +49,9 @@ export async function POST(request: Request) {
     );
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+
   try {
     const response = await fetch(`${baseUrl.replace(/\/$/, "")}/users/signup`, {
       method: "POST",
@@ -68,6 +65,7 @@ export async function POST(request: Request) {
         password: body.password,
       }),
       cache: "no-store",
+      signal: controller.signal,
     });
 
     const contentType = response.headers.get("content-type") ?? "";
@@ -79,14 +77,14 @@ export async function POST(request: Request) {
 
     const text = await response.text();
     return new Response(text || null, { status: response.status });
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return NextResponse.json(
-        error.response.data ?? { message: "회원가입에 실패했습니다." },
-        { status: error.response.status },
-      );
-    }
-
-    return handleUpstreamError();
+  } catch {
+    return NextResponse.json(
+      controller.signal.aborted
+        ? { message: "회원가입 서버 요청이 시간 초과되었습니다." }
+        : { message: "회원가입 서버에 연결할 수 없습니다." },
+      { status: controller.signal.aborted ? 504 : 502 },
+    );
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
