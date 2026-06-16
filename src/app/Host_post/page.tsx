@@ -1,7 +1,13 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { type ChangeEvent, type ReactNode, useEffect, useState } from "react";
+import {
+  type ChangeEvent,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { SpaceCreateForm } from "./SpaceCreateForm";
@@ -124,16 +130,21 @@ export default function HostPostPage() {
   );
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [imageSlots, setImageSlots] = useState<ImageSlot[]>(createEmptySlots);
+  const imageSlotsRef = useRef(imageSlots);
+
+  useEffect(() => {
+    imageSlotsRef.current = imageSlots;
+  }, [imageSlots]);
 
   useEffect(() => {
     return () => {
-      imageSlots.forEach((slot) => {
+      imageSlotsRef.current.forEach((slot) => {
         if (slot.previewUrl.startsWith("blob:")) {
           URL.revokeObjectURL(slot.previewUrl);
         }
       });
     };
-  }, [imageSlots]);
+  }, []);
 
   const displayedYear = displayedDate.getFullYear();
   const displayedMonth = displayedDate.getMonth();
@@ -168,6 +179,11 @@ export default function HostPostPage() {
   const handleImageSlotChange = (slotIndex: number, file: File | null) => {
     setImageSlots((currentSlots) => {
       const nextSlots = [...currentSlots];
+      const previousSlot = nextSlots[slotIndex];
+
+      if (previousSlot?.previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previousSlot.previewUrl);
+      }
 
       nextSlots[slotIndex] = {
         file,

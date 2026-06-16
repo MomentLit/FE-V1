@@ -20,6 +20,9 @@ export type UpdateCurrentUserInput = {
 const CURRENT_USER_KEY = "momentlit.currentUser";
 export const ACCESS_TOKEN_KEY = "accessToken";
 export const LEGACY_ACCESS_TOKEN_KEY = "access_token";
+export const COMMON_ACCESS_TOKEN_KEY = "common.accessToken";
+export const SESSION_ACCESS_TOKEN_KEY = "map-5421-accessToken";
+export const USER_TOKEN_KEY = "userToken";
 const inFlightPromises = new Map<string, Promise<CurrentUser>>();
 
 export function getAccessToken() {
@@ -27,10 +30,20 @@ export function getAccessToken() {
     return null;
   }
 
-  // Check the legacy key while existing sessions migrate to the canonical key.
+  // Check the known storage keys while existing sessions migrate between formats.
+  const sessionToken =
+    window.sessionStorage.getItem(ACCESS_TOKEN_KEY) ??
+    window.sessionStorage.getItem(SESSION_ACCESS_TOKEN_KEY);
+
+  if (sessionToken) {
+    return sessionToken;
+  }
+
   return (
     window.localStorage.getItem(ACCESS_TOKEN_KEY) ??
-    window.localStorage.getItem(LEGACY_ACCESS_TOKEN_KEY)
+    window.localStorage.getItem(COMMON_ACCESS_TOKEN_KEY) ??
+    window.localStorage.getItem(LEGACY_ACCESS_TOKEN_KEY) ??
+    window.localStorage.getItem(USER_TOKEN_KEY)
   );
 }
 

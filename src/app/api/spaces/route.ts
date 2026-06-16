@@ -80,6 +80,7 @@ export async function POST(request: Request) {
     typeof body.address !== "string" ||
     typeof body.thumbnail_url !== "string" ||
     !Array.isArray(body.image_urls) ||
+    !body.image_urls.every((imageUrl) => typeof imageUrl === "string") ||
     typeof body.price_per_hour !== "number" ||
     typeof body.category !== "string" ||
     typeof body.lat !== "number" ||
