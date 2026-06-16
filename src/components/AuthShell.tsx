@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { ACCESS_TOKEN_KEY } from "@/lib/current-user";
 
 type AuthShellProps = {
   chipText: string;
@@ -15,6 +18,30 @@ type AuthShellProps = {
   title: string;
   variant: "login" | "signup";
 };
+
+type SignInResponse = {
+  message: string;
+  data: {
+    name: string;
+    role: string;
+    access_token: string;
+    refresh_token: string;
+    expires_in: string;
+  };
+};
+
+type SignUpResponse = {
+  message: string;
+  data?: {
+    name?: string;
+    role?: string;
+    access_token?: string;
+    refresh_token?: string;
+    expires_in?: string | number;
+  };
+};
+
+const REFRESH_TOKEN_KEY = "refreshToken";
 
 function BrandText() {
   return <span className="text-[18px] font-semibold tracking-[0.02em] text-[#3CAEDB]">MomentLit</span>;
@@ -30,18 +57,33 @@ function Field({
   label,
   placeholder,
   type = "text",
+  autoComplete,
+  name,
+  onChange,
+  required = false,
+  value,
 }: {
   label: string;
   placeholder: string;
   type?: string;
+  autoComplete?: string;
+  name?: string;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
+  value?: string;
 }) {
   return (
     <label className="flex flex-col gap-2">
       <span className="text-[14px] font-medium text-[#172129]">{label}</span>
       <input
         className="h-[52px] rounded-2xl border border-[#C8E4E6] bg-white px-[18px] text-[15px] text-[#172129] outline-none placeholder:text-[#99A1B1]"
+        autoComplete={autoComplete}
+        name={name}
+        onChange={onChange}
         placeholder={placeholder}
+        required={required}
         type={type}
+        value={value}
       />
     </label>
   );
@@ -50,14 +92,23 @@ function Field({
 function SocialButton({
   bg,
   children,
+  disabled = false,
+  onClick,
+  title,
 }: {
   bg: string;
-  children: React.ReactNode;
+  children: ReactNode;
+  disabled?: boolean;
+  onClick?: () => void;
+  title?: string;
 }) {
   return (
     <button
-      className="flex h-12 flex-1 items-center justify-center rounded-2xl border border-[#D8ECEC]"
+      className="flex h-12 flex-1 items-center justify-center rounded-2xl border border-[#D8ECEC] disabled:cursor-not-allowed disabled:opacity-60"
       style={{ backgroundColor: bg }}
+      disabled={disabled}
+      onClick={onClick}
+      title={title}
       type="button"
     >
       {children}
@@ -103,9 +154,160 @@ export function AuthShell({
   title,
   variant,
 }: AuthShellProps) {
+  const router = useRouter();
   const isLogin = variant === "login";
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+
+  async function handleSignIn(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setAuthError("");
+
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail || !password) {
+      setAuthError("아이디와 비밀번호를 입력해주세요.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const response = await axios.post<SignInResponse>(
+        "/api/auth/signin",
+        {
+          email: trimmedEmail,
+          password,
+        },
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        },
+      );
+
+      const auth = response.data?.data;
+
+      if (!auth?.access_token || !auth?.refresh_token) {
+        throw new Error("로그인 응답이 올바르지 않습니다.");
+      }
+
+      window.localStorage.setItem(ACCESS_TOKEN_KEY, auth.access_token);
+      window.localStorage.setItem(REFRESH_TOKEN_KEY, auth.refresh_token);
+      window.localStorage.removeItem("access_token");
+
+      router.replace("/");
+      router.refresh();
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          error.response?.status === 403
+            ? "로그인 API가 서버에서 403으로 차단되고 있습니다."
+            : typeof error.response?.data?.message === "string"
+              ? error.response.data.message
+              : "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.";
+
+        setAuthError(message);
+      } else {
+        setAuthError("로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function handleGoogleSignIn() {
+    window.location.assign("/api/auth/oauth/google");
+  }
+
+  function handleUnavailableOAuth(provider: string) {
+    setAuthError(`${provider} 로그인은 아직 연결되지 않았습니다.`);
+  }
+
+  async function handleSignUp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setAuthError("");
+
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName || !trimmedEmail || !password || !confirmPassword) {
+      setAuthError("이름, 이메일, 비밀번호를 모두 입력해주세요.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setAuthError("비밀번호는 8자 이상이어야 합니다.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setAuthError("비밀번호 확인이 일치하지 않습니다.");
+      return;
+    }
+
+    if (!agreeTerms) {
+      setAuthError("이용약관 및 개인정보 처리방침에 동의해주세요.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const response = await axios.post<SignUpResponse>(
+        "/api/auth/signup",
+        {
+          name: trimmedName,
+          email: trimmedEmail,
+          password,
+        },
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        },
+      );
+
+      const auth = response.data?.data;
+
+      if (auth?.access_token && auth?.refresh_token) {
+        window.localStorage.setItem(ACCESS_TOKEN_KEY, auth.access_token);
+        window.localStorage.setItem(REFRESH_TOKEN_KEY, auth.refresh_token);
+        window.localStorage.removeItem("access_token");
+        router.replace("/");
+        router.refresh();
+        return;
+      }
+
+      router.replace("/login");
+      router.refresh();
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          error.response?.status === 403
+            ? "회원가입 API가 서버에서 403으로 차단되고 있습니다."
+            : typeof error.response?.data?.message === "string"
+              ? error.response.data.message
+              : "회원가입에 실패했습니다. 입력값을 확인해주세요.";
+
+        setAuthError(message);
+      } else {
+        setAuthError("회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[linear-gradient(135deg,#F6FCFC_0%,#EEF7F7_52%,#E4F1F2_100%)] p-6">
@@ -142,9 +344,26 @@ export function AuthShell({
             </div>
 
             {variant === "login" ? (
-              <>
-                <Field label="아이디" placeholder="MomentLit-id" />
-                <Field label="비밀번호" placeholder="••••••••" type="password" />
+              <form className="flex flex-col gap-4" onSubmit={handleSignIn}>
+                <Field
+                  autoComplete="email"
+                  label="아이디"
+                  name="email"
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="MomentLit-id"
+                  required
+                  value={email}
+                />
+                <Field
+                  autoComplete="current-password"
+                  label="비밀번호"
+                  name="password"
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="••••••••"
+                  required
+                  type="password"
+                  value={password}
+                />
 
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2.5 text-[14px] text-[#7B8C8E]">
@@ -163,30 +382,82 @@ export function AuthShell({
                   </button>
                 </div>
 
-                <button className="h-14 rounded-full bg-[#00ADB5] text-[15px] font-medium text-white" type="button">
-                  로그인
+                {authError ? (
+                  <p className="rounded-2xl bg-[#FFF3F3] px-4 py-3 text-[13px] font-medium text-[#B34848]">
+                    {authError}
+                  </p>
+                ) : null}
+
+                <button
+                  className="h-14 rounded-full bg-[#00ADB5] text-[15px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+                  disabled={submitting}
+                  type="submit"
+                >
+                  {submitting ? "로그인 중..." : "로그인"}
                 </button>
 
                 <p className="pt-1 text-center text-[13px] font-medium text-[#7B8C8E]">간편 회원가입</p>
 
                 <div className="flex gap-3">
-                  <SocialButton bg="#FFFFFF">
+                  <SocialButton bg="#FFFFFF" onClick={handleGoogleSignIn} title="Google로 로그인">
                     <GoogleIcon />
                   </SocialButton>
-                  <SocialButton bg="#FEE500">
+                  <SocialButton bg="#FEE500" onClick={() => handleUnavailableOAuth("카카오")} title="카카오 로그인">
                     <KakaoIcon />
                   </SocialButton>
-                  <SocialButton bg="#111111">
+                  <SocialButton bg="#111111" onClick={() => handleUnavailableOAuth("애플")} title="애플 로그인">
                     <AppleIcon />
                   </SocialButton>
                 </div>
-              </>
+              </form>
             ) : (
-              <>
-                <Field label="이름" placeholder="홍길동" />
-                <Field label="이메일" placeholder="MomnetLit@example.com" />
-                <Field label="비밀번호" placeholder="••••••••" type="password" />
-                <Field label="비밀번호 확인" placeholder="••••••••" type="password" />
+              <form className="flex flex-col gap-4" onSubmit={handleSignUp}>
+                <Field
+                  autoComplete="name"
+                  label="이름"
+                  name="name"
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="홍길동"
+                  required
+                  value={name}
+                />
+                <Field
+                  autoComplete="email"
+                  label="이메일"
+                  name="email"
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="MomnetLit@example.com"
+                  required
+                  value={email}
+                />
+                <Field
+                  autoComplete="new-password"
+                  label="비밀번호"
+                  name="password"
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="••••••••"
+                  required
+                  minLength={8}
+                  type="password"
+                  value={password}
+                />
+                <Field
+                  autoComplete="new-password"
+                  label="비밀번호 확인"
+                  name="confirmPassword"
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  placeholder="••••••••"
+                  required
+                  minLength={8}
+                  type="password"
+                  value={confirmPassword}
+                />
+
+                {authError ? (
+                  <p className="rounded-2xl bg-[#FFF3F3] px-4 py-3 text-[13px] font-medium text-[#B34848]">
+                    {authError}
+                  </p>
+                ) : null}
 
                 <label className="my-2 flex items-center gap-2.5 py-1.5 text-[13px] text-[#7B8C8E]">
                   <input
@@ -200,10 +471,14 @@ export function AuthShell({
                   이용약관 및 개인정보 처리방침에 동의합니다.
                 </label>
 
-                <button className="h-14 rounded-full bg-[#00ADB5] text-[15px] font-medium text-white" type="button">
-                  회원가입
+                <button
+                  className="h-14 rounded-full bg-[#00ADB5] text-[15px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+                  disabled={submitting}
+                  type="submit"
+                >
+                  {submitting ? "회원가입 중..." : "회원가입"}
                 </button>
-              </>
+              </form>
             )}
 
             <p className="text-center text-[14px] text-[#5D6B6C]">
