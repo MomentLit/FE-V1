@@ -14,10 +14,13 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import {
   ACCESS_TOKEN_KEY,
+  COMMON_ACCESS_TOKEN_KEY,
   clearCachedCurrentUser,
   type CurrentUser,
   fetchCurrentUser,
   LEGACY_ACCESS_TOKEN_KEY,
+  SESSION_ACCESS_TOKEN_KEY,
+  USER_TOKEN_KEY,
 } from "@/lib/current-user";
 
 type MyPageContextValue = {
@@ -39,7 +42,11 @@ function Sidebar({ user }: { user: CurrentUser }) {
 
   function handleLogout() {
     window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+    window.localStorage.removeItem(COMMON_ACCESS_TOKEN_KEY);
     window.localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
+    window.localStorage.removeItem(USER_TOKEN_KEY);
+    window.sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+    window.sessionStorage.removeItem(SESSION_ACCESS_TOKEN_KEY);
     clearCachedCurrentUser();
     router.push("/");
   }
